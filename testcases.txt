@@ -1,0 +1,400 @@
+Type 1 : Instructions have memory already in increasing order (no optimization case)
+
+Testcase 1.1 
+
+
+main:
+	addi $t0, $t0, 5
+	addi $t5, $t5, 4
+	add $t1, $zero, $t0
+	addi $t2, $t2, 40
+	mul $t1, $t1, $t0
+	sw $t1, 1000($zero)
+	sw $t2, 1600($zero)
+	lw $t3, 1600($zero)
+	addi $t3,$t3, 100
+	sw $t3, 2000($zero)
+	lw $t5, 2000($zero)
+	sw $t0, 2400($t5)
+	addi $t0,$t0, 20
+	
+exit:
+
+Testcase 1.2
+
+
+main:
+	sub $t0,$t0, -10
+	addi $t1, $t1, 10
+	beq $t0, $t1, rest
+	lw $t0, 6000($zero)
+
+	rest:
+		sw $t0, 4000($zero)
+		addi $t3,$t3,40
+		lw $t6, 4000($zero)
+		mul $t6,$t6,$t0
+		sw $t6, 6000($zero)
+		lw $t7, 6000($zero)
+		addi $t9,$t9, 20
+		j exit
+		lw $t8, 200($zero)
+exit:
+
+Testcase 1.3
+
+
+
+main:
+	addi $t3, $t3, 25
+	addi $t6, $t6, -10
+	sw $t6, 100($zero)
+	bne $t3,$t6, l1
+	lw $t5 ,20($zero)
+
+	l1:
+		lw $t2,200($zero)
+		sw $t3, 500($zero)
+		addi $t3, $t3, 25
+		add $t3,$t3, $t6
+		j _l2
+	_l2:
+		lw $t5, 500($zero)
+
+	
+exit:
+
+Type 2: All instructions are independent of each other and optimisation takes place
+
+Testcase 2.1
+
+main:
+	addi $s0, $zero, 1000
+	addi $s1, $zero, 2400
+	addi $t0, $t0, 1
+	addi $t1, $t1, 2
+	sw $t0, 0($s0)	
+	sw $t1, 0($s1)
+
+	addi $t2, $zero, 3
+	addi $t3, $zero, 4
+
+	sw $t2, 16($s0)	
+	sw $t4, 16($s1)	
+
+	lw $t7, 8($s0)
+	lw $t8, 8($s1)
+	lw $t5, 4($s0)
+	lw $t6, 4($s1)
+exit:
+
+Testcase 2.2
+
+main:
+	add $s0, $s0, 1000
+	addi $s1, $s1, 3000
+	add $t0, $t0, 10
+	add $t1, $t1, 20
+	add $t2, $t2, 40
+	sw $t0, 0($s0)
+	mul $t3, $t1, $t2
+	sw $t1, 0($s1)
+	lw $t2, 4($s0)
+	sub $t4, $t4, 50
+	lw $t3, 4($s0)
+exit:
+
+
+Testcase 2.3
+
+main:
+	add $s0, $s0, 1024
+	addi $s1, $s1, 1020
+	add $t0, $t0, 10
+	sw $t1, 0($s1)
+	lw $t2, 0($s0)
+	add $t3, $t3, 10
+	mul $t3, $t1, $t0
+	sw $t1, 4($s1)
+exit:
+
+Type 3: Instructions other than lw/sw may depend on some previous lw instruction and optimization takes place
+
+Testcase 3.1
+
+
+
+main:
+	addi $t0, $t0, 30
+	add $t1, $t0,$t0
+	sub $t5,$t5, -20
+	lw $t6, 3000($zero)
+	addi $t9,$t9,40
+	j rem
+	rem:
+		sw $t5, 1000($zero)
+		lw $t7, 3004($zero)
+		sw $t1, 980($zero)
+		addi $t7, $t7,20
+		sub $s0, $s0, $t7
+	
+exit:
+
+Testcase 3.2
+
+
+main:
+	addi $s0, $s0, 200
+	addi $t2,$t2, 40
+	sub $t5, $t5, -50
+	sw $t2, 400($zero)
+	sw $t3, 1000($t2)
+	bne $t3, $t2, next
+	lw $t1, 1000($zero)
+
+	next:
+		sw $t2, 500($zero)
+		lw $t7, 1000($t2)
+		addi $t6, $t6, 100
+		sw $t6, 300($zero)
+		lw $t2, 1020($zero)
+		
+
+exit:
+
+Testcase 3.3
+
+
+main:
+	lw $t3, 2000($zero)
+	lw $t2, 200($zero)
+	lw $t5, 2040($zero)
+	lw $t6, 5000($zero)
+	sw $t7, 340($zero)
+	lw $t8, 5040($zero)
+	addi $t8, $t8, 20
+	sw $t8, 100($zero)
+	lw $t9, 6000($zero)
+	lw $s0, 240($zero)
+	lw $s1, 6000($zero)
+	sw $t2, 400($t8)
+
+
+exit:
+
+
+Type 4: Our lw advanced optimization takes place due to repeated register in lw. (remove the previous instructions from queue)
+
+Testcase 4.1
+
+main:
+	add $s0, $s0, 1024
+	addi $s1, $s1, 1020
+	add $t0, $t0, 10
+	sub $t1, $t1, -80
+	sw $t0, 0($s1)
+	sw $t1, 0($s0)
+	lw $t2, 0($s0)
+	lw $t2, 0($s1) 
+
+	sw $t2, 4($s1)
+exit:
+
+Testcase 4.2
+
+main:
+	add $s0, $s0, 1020
+	addi $s1, $s1, 1024
+	add $t0, $t0, 10
+	mul $t1, $t0, $t0
+	sw $t0, 0($s1)
+	sw $t1, 0($s0)
+	lw $t2, 0($s1)
+	add $t3, $t3, 20
+	lw $t2, 0($s0) 
+	sw $t3, 100($s0)
+	lw $t2, 0($s1)
+exit:
+
+Testcase 4.3
+
+main:
+	add $s0, $s0, 1020
+	addi $s1, $s1, 1024
+	sub $t0, $t0, 199
+	mul $t1, $t0, 40
+	sw $t0, 0($s1)
+	lw $t2, 0($s1)
+	add $t3, $t3, 20
+	lw $t2, 0($s0) 
+	sw $t3, 100($s0)
+	lw $t4, 0($s1)
+	lw $t4, 100($s0)
+exit:
+
+Type 5: Our sw advanced optimization takes place due to same memory values in consecutive sw instructions.
+
+Testcase 5.1
+
+
+main:
+	addi $t3, $t3, 40
+	addi $t5, $t5, -20
+	mul $t6, $t3, $t5
+	sw $t3, 2000($zero)
+	sw $t5, 2000($zero)
+	sw $t6, 2000($zero)
+	sw $t7, 2000($zero)
+	addi $t2, $t2, 20
+	sw $t2, 2000($zero)
+
+exit:
+	
+Testcase 5.2
+
+
+main:
+	addi $t0,$t0, 20
+	mul $t1, $t0, $t0
+	bne $t0, $t1, rem
+	lw $t0, 100($zero)
+
+rem:
+	sw $t1, 3000($r0)
+	addi $t6, $t6, 40
+	sw $t6, 3000($r0)
+	addi $t1,$t1, 2000
+	sw $t1, 3000($r0)
+	beq $t1, $t6, exit
+	sw $t0, 3000($r0)
+	lw $t5, 3000($r0)
+	
+
+exit:
+
+Testcase 5.3
+
+
+main:
+	addi $t0, $t0, 20
+	addi $t1, $t1, 20
+	beq $t0, $t1, next
+	sw $t0, 2000($zero)
+	next:
+		lw $t3, 2000($zero)
+		sw $t3, 3000($zero)
+		addi $t2,$t2,20
+		sub $t3,$t3, $t1
+		addi $t6,$t6, 70
+		sw $t6, 3000($zero)
+		sw $t3, 3000($zero)
+		sw $t2, 3000($zero)
+		j exit
+
+
+exit:
+
+Type 6 : Instructions other than lw/sw may have a register present in some previous sw instruction and optimization takes place as we store the contents of the register 
+used in sw while adding in the queue.
+
+Testcase 6.1
+
+main:
+	addi $s1, $s1, 1024
+	add $t0, $t0, 50
+	sw $t0, 0($s1)
+	add $t0, $t0, 99
+	lw $t0, 0($s1) 
+exit:
+
+Testcase 6.2
+
+main:
+	add $s0, $s0, 1020
+	add $t0, $t0, 50
+	sw $t0, 0($s0)
+	lw $t1, 0($s0)
+	add $t0, $t0, 99
+	add $t1, $t1, 99 
+	j exit
+	add $t3, $t3, 10 
+exit:
+
+Type 7: Syntax error
+
+Testcase 7.1
+
+subi $t0, $t0, 10
+add $t1, $t1, 9
+
+Testcase 7.2
+
+add $t0, $t0, 5
+lw $t0, 1000
+
+Type 8: Address not divisible by 4
+
+Testcase 8.1
+
+add $t0, $t0, 1000
+add $t1, $t1, 9
+lw $t1, 3($t0)
+
+Testcase 8.2
+
+sub $t0, $t0, -1000
+addi $t1, $t1, 89
+sw $t1, 10($t0)
+
+Type 9: Address takes instruction memory
+
+Testcase 9.1
+
+addi $t0, $t0, 4
+mul $t1, $t0, 6
+sw $t1, 0($zero)
+
+Testcase 9.2
+
+add $t0, $t0, 14
+sub $t1, $t0, 10
+lw $t1, 0($zero)
+
+Type 10: Wrong label
+
+Testcase 10.1
+
+main:
+	add $t0, $t0, 16
+	j exi
+exit:
+
+Testcase 10.2
+
+main:
+	add $t0, $t0, 10
+	add $t1, $t1, 11
+	mul $t2, $t0, $t1
+	j ok
+exit:
+
+Type 11: Infinite loop
+
+Testcase 11.1
+
+main:
+	add $t0, $t0, 1
+	j main
+exit:
+
+Testcase 11.2
+
+main:
+	add $t0, $t0, 5
+	add $t1, $t1, 1
+loop:
+	add $t1, $t1, -1
+	bne $t1, $t0, loop
+exit:
+
+
