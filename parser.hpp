@@ -10,13 +10,14 @@ map<string, int> labels;
 struct Instruction
 {
     string name;
+    int file_name;
     string field_1 = "";
     string field_2 = "";
     string field_3 = "";
 };
-bool valid_register(string R, map<string, int> register_values)
+bool valid_register(string R, set<string> Register_list)
 {
-    return register_values.find(R) != register_values.end();
+    return Register_list.find(R) != Register_list.end();
 }
 bool is_integer(string s)
 {
@@ -35,7 +36,7 @@ map<string, int> getLabels()
     return labels;
 }
 
-int SearchForRegister(int starting_index, int ending_index, string file_string, map<string, int> register_values)
+int SearchForRegister(int starting_index, int ending_index, string file_string, set<string> Register_list)
 {
     //this is a helper function which searches for a register from starting index and returns the starting point of it
     int start = -1;
@@ -55,7 +56,7 @@ int SearchForRegister(int starting_index, int ending_index, string file_string, 
     {
         return -1;
     }
-    if (!valid_register(file_string.substr(start, 3), register_values))
+    if (!valid_register(file_string.substr(start, 3), Register_list))
     {
         return -1;
     }
@@ -276,7 +277,7 @@ bool ifEmpty(string temp)
     return true;
 }
 
-pair<int, Instruction> Create_structs(string file_string, map<string, int> register_values, int pcValue)
+pair<int, Instruction> Create_structs(string file_string, set<string> Register_list, int pcValue)
 {
     int i = 0;
     bool instruction_found = false;
@@ -323,12 +324,12 @@ pair<int, Instruction> Create_structs(string file_string, map<string, int> regis
                 int reg1_start;
                 if (ins == "addi")
                 {
-                    reg1_start = SearchForRegister(i + 4, file_string.size() - 1, file_string, register_values);
+                    reg1_start = SearchForRegister(i + 4, file_string.size() - 1, file_string, Register_list);
                 }
 
                 else
                 {
-                    reg1_start = SearchForRegister(i + 3, file_string.size() - 1, file_string, register_values);
+                    reg1_start = SearchForRegister(i + 3, file_string.size() - 1, file_string, Register_list);
                 }
                 if (reg1_start == -1)
                 {
@@ -343,7 +344,7 @@ pair<int, Instruction> Create_structs(string file_string, map<string, int> regis
                     //validFile = false;
                     return {0, new_instr};
                 }
-                int reg2_start = SearchForRegister(comma1Pos + 1, file_string.size() - 1, file_string, register_values);
+                int reg2_start = SearchForRegister(comma1Pos + 1, file_string.size() - 1, file_string, Register_list);
                 if (reg2_start == -1)
                 {
                     //validFile = false;
@@ -356,7 +357,7 @@ pair<int, Instruction> Create_structs(string file_string, map<string, int> regis
                     //validFile = false;
                     return {0, new_instr};
                 }
-                int reg3_start = SearchForRegister(comma2Pos + 1, file_string.size() - 1, file_string, register_values);
+                int reg3_start = SearchForRegister(comma2Pos + 1, file_string.size() - 1, file_string, Register_list);
                 //instead of third register, we can also have an integer value
                 pair<int, int> integer_indices = SearchForInteger(comma2Pos + 1, file_string.size() - 1, file_string);
                 pair<bool, pair<string, int>> labeldata = findLabel(file_string, comma2Pos + 1);
@@ -443,7 +444,7 @@ pair<int, Instruction> Create_structs(string file_string, map<string, int> regis
             {
                 //this has the format lw $t0, offset($register_name)
                 // first of all search for the first register
-                int reg1_start = SearchForRegister(i + 2, file_string.size() - 1, file_string, register_values);
+                int reg1_start = SearchForRegister(i + 2, file_string.size() - 1, file_string, Register_list);
                 if (reg1_start == -1)
                 {
                     //validFile = false;
@@ -473,7 +474,7 @@ pair<int, Instruction> Create_structs(string file_string, map<string, int> regis
                     return {0, new_instr};
                 }
                 //now we will match a register
-                int reg2_start = SearchForRegister(lparenPos + 1, file_string.size() - 1, file_string, register_values);
+                int reg2_start = SearchForRegister(lparenPos + 1, file_string.size() - 1, file_string, Register_list);
                 if (reg2_start == -1)
                 {
                     //validFile = false;

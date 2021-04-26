@@ -1,1 +1,46 @@
-//enter input here
+ALGORITHM:
+
+
+Mem_req_manager() algorithm: (in order)
+	1.) if there is a running instruction, execute one cycle of it
+	2.) if immediate queue is non empty, pop an element from it, set present_in_imm_queue of corresponding file as false, and execute one cycle of it
+	3.) if dram_queue is non empty, and we have some useless lw instructions present at the front of queue, keep popping them. If queue is non empty now, execute the first instruction from dram_queue and set it as curr_ins.
+	4.) else just continue
+
+While (true)
+
+Mem_req_manager();
+
+For i ranging from 0 to n
+	f = current file;
+	ins = current instr;s
+	if Present_in_imm_queue(f) = true
+		continue;
+	else
+		if ins not in {lw,sw}
+			if ins is independent
+				execute ins;
+				PC[f]++;
+			else
+				if depends on current_ins
+					continue;
+				else
+					add first apt ins to immediate_queue;
+					Present_in_imm_queue(f) =true;
+		else if ins == lw
+			update register_instruction to this ins;
+			DRAM_Queue.push(ins);
+			PC[file]++;
+		else
+			if ins is independent
+				if queue.end() has sw with same mem, pop that;
+				push ins;
+				Pc[file]++;
+			else
+				if depends on current_ins
+					continue;
+				else 
+					add first apt ins to immediate_queue;
+					Present_in_imm_queue(f)=true;
+	if current_ins is completed
+		reset_instruction_parameters();
