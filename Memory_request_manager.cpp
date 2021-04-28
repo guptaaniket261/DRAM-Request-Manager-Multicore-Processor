@@ -8,7 +8,10 @@
 #include <set>
 #include "Memory_request_manager.h"
 using namespace std;
-Memory_request_manager::Memory_request_manager() {}
+Memory_request_manager::Memory_request_manager()
+{
+    return;
+}
 tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
     if (current_state == 1)

@@ -23,6 +23,7 @@ vector<map<string, int>> register_busy; //map each register to its lw/sw row num
 class Memory_request_manager
 {
 public:
+    Memory_request_manager();
     vector<deque<DRAM_ins>> mrmBuffer;
     vector<deque<DRAM_ins>> justReceived;
     int justReceivedSize = 0;
