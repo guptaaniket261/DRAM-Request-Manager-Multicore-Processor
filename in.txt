@@ -1,46 +1,52 @@
 ALGORITHM:
 
 
-Mem_req_manager() algorithm: (in order)
-	1.) if there is a running instruction, execute one cycle of it
-	2.) if immediate queue is non empty, pop an element from it, set present_in_imm_queue of corresponding file as false, and execute one cycle of it
-	3.) if dram_queue is non empty, and we have some useless lw instructions present at the front of queue, keep popping them. If queue is non empty now, execute the first instruction from dram_queue and set it as curr_ins.
-	4.) else just continue
+//MRM writeback 
+//MRM changes pointers of queue buffer - 3rd Priority
+//MRM finds first non zero instruction (combinational logic) - 1st Priority
+//MRM sends an instruction to DRAM for execution -2nd priority
+//SEND TO MRM
 
+Mem_req_manager() algorithm: (in order)
+	1.) if there is a running instruction, execute one cycle of it (done by DRAM)
+	2.) if writing a value into register or not doing anything, then pick apt row and start executing along with it.
+			if row_buffer is -1, choose first non zero row, takes one cycle as done by combinational logic
+	4.) else just continue
+//maintain a hashmap row -> (first_index, last_index)
+//for first non empty, row, maintain an array of prefix or's, and adjacent xor's-> JUST EXPLAIN THIS
+DRAM , MRM, MAIN
+//r0 check, and address divisibility by 4
 While (true)
 
-Mem_req_manager();
+checkForWriteback(); //also returns the register 
 
 For i ranging from 0 to n
-	f = current file;
-	ins = current instr;s
-	if Present_in_imm_queue(f) = true
-		continue;
-	else
-		if ins not in {lw,sw}
-			if ins is independent
-				execute ins;
-				PC[f]++;
+	instruction is add 
+		
+		1.) checkForWriteback is true
+			do not update PC of this
+
+		2.) register is dependent of any ongoing or previous instruction
+			(store last lw for each register) do not update PC of this (check all the three registers)
+		3.) independent:
+			execute in parallel
+
+	instruction is lw
+
+		1.) if offset register occurs as the first register of some previous lw(or current) ya fir writeback : PC not updated
+		2.) if first register occurs previously.
+				if just previous memory operation was lw and on same register:
+					send to MRM (with a flag which is 1); (MRM starts an operation of Pointer updation)
+					udpate PC;
+				else:
+					do not update PC
+		3.) just push with flag(0),update PC
+	
+	instruction is sw
+
+		1.) if any register is first register of previous lw : PC is not updated.
+		2.) if jusr previous memory operation was on same memory and was sw:
+			  send to MRM with flag as 1
 			else
-				if depends on current_ins
-					continue;
-				else
-					add first apt ins to immediate_queue;
-					Present_in_imm_queue(f) =true;
-		else if ins == lw
-			update register_instruction to this ins;
-			DRAM_Queue.push(ins);
-			PC[file]++;
-		else
-			if ins is independent
-				if queue.end() has sw with same mem, pop that;
-				push ins;
-				Pc[file]++;
-			else
-				if depends on current_ins
-					continue;
-				else 
-					add first apt ins to immediate_queue;
-					Present_in_imm_queue(f)=true;
-	if current_ins is completed
-		reset_instruction_parameters();
+			  send flag(0)
+			  update PC;

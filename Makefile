@@ -1,5 +1,5 @@
 all:
-	g++ -std=c++11 -o a.out col216a5.cpp
+	g++ -std=c++11 -o a.out COL216_A5.cpp  Memory_request_manager.cpp
 
 .SILENT:
 	all

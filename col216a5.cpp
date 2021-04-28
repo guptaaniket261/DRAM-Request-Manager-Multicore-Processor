@@ -27,15 +27,7 @@ struct toPrint
 };
 
 vector<toPrint> prints;
-struct DRAM_ins
-{
-    int ins_number;     //stores instruction_number
-    int type;           //0 if lw, 1 if sw
-    int memory_address; //stores load/store address
-    int value = 0;      //stores the value of register in case of sw instruction, as we are already passing it
-    int fileNumber;
-    string reg; //stores the register of instruction
-};
+
 
 int number_of_files;
 int simulation_time;
