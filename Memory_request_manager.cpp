@@ -8,25 +8,32 @@
 #include <set>
 #include "Memory_request_manager.h"
 using namespace std;
-Memory_request_manager::Memory_request_manager()
+Memory_request_manager::Memory_request_manager(int r, int c)
 {
-    return;
+    program_dram = DRAM(r, c);
 }
 tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
-    if (current_state == 1)
+    if (program_dram.current_state == 1)
     {
-        register_values[writeBack.fileNumber][writeBack.reg] = writeBack.value;
+        register_values[program_dram.writeBack.fileNumber][program_dram.writeBack.reg] = program_dram.writeBack.value;
         //this means a writeback is being done in current cycle
-        current_state = 0;
-        return {true, writeBack.fileNumber, writeBack.reg};
+        program_dram.current_state = 0;
+        return {true, program_dram.writeBack.fileNumber, program_dram.writeBack.reg};
     }
     else
     {
         return {false, -1, "-"};
     }
 }
-
+void Memory_request_manager::increment_cycles()
+{
+    program_dram.clock_cycles++;
+}
+void Memory_request_manager::simulate_DRAM()
+{
+    program_dram.update_DRAM();
+}
 void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
 {
     if (flag == 0)
@@ -41,12 +48,12 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
         if (justReceived[inst.fileNumber].size() == 0)
         {
             //remove the prev same instr from the buffer, if it is not the current instruction
-            if (inst.type == 0 && DRAMcurrentIns.type == 0 && inst.reg == DRAMcurrentIns.reg)
+            if (inst.type == 0 && program_dram.DRAMcurrentIns.type == 0 && inst.reg == program_dram.DRAMcurrentIns.reg)
             {
                 justReceived[inst.fileNumber].push_back(inst);
                 justReceivedSize++;
             }
-            else if (inst.type == 1 && DRAMcurrentIns.type == 1 && inst.memory_address == DRAMcurrentIns.memory_address)
+            else if (inst.type == 1 && program_dram.DRAMcurrentIns.type == 1 && inst.memory_address == program_dram.DRAMcurrentIns.memory_address)
             {
                 justReceived[inst.fileNumber].push_back(inst);
                 justReceivedSize++;
@@ -72,22 +79,22 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
 }
 void Memory_request_manager::updateMRM()
 {
-    if (start_cycle == clock_cycles)
+    if (program_dram.start_cycle == program_dram.clock_cycles)
         return;
-    bool res = checkIfRunning();
+    bool res = program_dram.checkIfRunning();
     if (!res)
     {
         //in this case, alot a new instruction
         //row_buffer =-1, or row buffer has an empty row one cycle for combinational logic. else send to DRAM
-        if (DRAM_PRIORITY_ROW == -1 || bufferSize[DRAM_PRIORITY_ROW] == 0)
+        if (program_dram.DRAM_PRIORITY_ROW == -1 || bufferSize[program_dram.DRAM_PRIORITY_ROW] == 0)
         {
             //getNewRow();
             for (int i = 0; i < mrmBuffer.size(); i++)
             {
                 for (int j = 0; j < mrmBuffer[i].size(); j++)
                 {
-                    DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
-                    setRunning(clock_cycles + 1);
+                    program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
+                    program_dram.setRunning(program_dram.clock_cycles + 1);
                     break;
                 }
             }
@@ -96,8 +103,8 @@ void Memory_request_manager::updateMRM()
         {
 
             //send row buffer instruction to DRAM
-            setRunning(clock_cycles + 1);
-            allot_new_instruction(DRAM_PRIORITY_ROW);
+            program_dram.setRunning(program_dram.clock_cycles + 1);
+            allot_new_instruction(program_dram.DRAM_PRIORITY_ROW);
         }
     }
     else
@@ -140,7 +147,7 @@ void Memory_request_manager::allot_new_instruction(int row_number)
             DRAM_ins temp = mrmBuffer[i][j];
             if (((temp.memory_address) / 1024 == row_number) && !found)
             {
-                DRAMcurrentIns = temp;
+                program_dram.DRAMcurrentIns = temp;
                 found = true;
             }
             else

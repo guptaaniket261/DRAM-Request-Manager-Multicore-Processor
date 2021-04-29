@@ -24,7 +24,7 @@ int number_of_files;
 int simulation_time;
 vector<int> PC;
 vector<bool> invalid_files;
-Memory_request_manager memReqManager;
+Memory_request_manager memReqManager = Memory_request_manager(1, 2);
 vector<DRAM_ins> prevMemoryOperation; //remember to initialise this vector !
 string ifZero(string temp)
 {
@@ -76,33 +76,33 @@ string findInstruction(Instruction current)
 void map_register_numbers()
 {
     //maps each register to a unique number between 0-31 inclusive
-    register_numbers[0] = "$r0";
-    register_numbers[1] = "$at";
-    register_numbers[2] = "$v0";
-    register_numbers[3] = "$v1";
+    memReqManager.register_numbers[0] = "$r0";
+    memReqManager.register_numbers[1] = "$at";
+    memReqManager.register_numbers[2] = "$v0";
+    memReqManager.register_numbers[3] = "$v1";
     for (int i = 4; i <= 7; i++)
     {
-        register_numbers[i] = "$a" + to_string(i - 4);
+        memReqManager.register_numbers[i] = "$a" + to_string(i - 4);
     }
     for (int i = 8; i <= 15; i++)
     {
-        register_numbers[i] = "$t" + to_string(i - 8);
+        memReqManager.register_numbers[i] = "$t" + to_string(i - 8);
     }
     for (int i = 16; i <= 23; i++)
     {
-        register_numbers[i] = "$s" + to_string(i - 16);
+        memReqManager.register_numbers[i] = "$s" + to_string(i - 16);
     }
-    register_numbers[24] = "$t8";
-    register_numbers[25] = "$t9";
-    register_numbers[26] = "$k0";
-    register_numbers[27] = "$k1";
-    register_numbers[28] = "$gp";
-    register_numbers[29] = "$sp";
-    register_numbers[30] = "$s8";
-    register_numbers[31] = "$ra";
+    memReqManager.register_numbers[24] = "$t8";
+    memReqManager.register_numbers[25] = "$t9";
+    memReqManager.register_numbers[26] = "$k0";
+    memReqManager.register_numbers[27] = "$k1";
+    memReqManager.register_numbers[28] = "$gp";
+    memReqManager.register_numbers[29] = "$sp";
+    memReqManager.register_numbers[30] = "$s8";
+    memReqManager.register_numbers[31] = "$ra";
     for (int i = 0; i < 32; i++)
     {
-        Register_list.insert(register_numbers[i]);
+        Register_list.insert(memReqManager.register_numbers[i]);
     }
 }
 void map_operations()
@@ -129,25 +129,14 @@ void map_operations()
     intTostr_operation[9] = "lw";
     intTostr_operation[10] = "sw";
 }
-void initialise_memory()
-{
-    for (int i = 0; i < (1 << 20); i++)
-    {
-        memory[i] = 0;
-    }
-    for (int i = 0; i < 1024; i++)
-    {
-        ROW_BUFFER[i] = 0;
-    }
-}
 
 void initialise_Registers(int file_number)
 {
     //initialises all the registers
     for (int i = 0; i < 32; i++)
     {
-        register_values[file_number][register_numbers[i]] = 0;
-        register_busy[file_number][register_numbers[i]] = -1;
+        memReqManager.register_values[file_number][memReqManager.register_numbers[i]] = 0;
+        memReqManager.register_busy[file_number][memReqManager.register_numbers[i]] = -1;
     }
 }
 
@@ -160,11 +149,11 @@ void add(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] + stoi(current.field_3);
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + stoi(current.field_3);
     }
     else
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] + register_values[file_num][current.field_3];
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + memReqManager.register_values[file_num][current.field_3];
     }
 }
 
@@ -177,11 +166,11 @@ void sub(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] - stoi(current.field_3);
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - stoi(current.field_3);
     }
     else
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] - register_values[file_num][current.field_3];
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - memReqManager.register_values[file_num][current.field_3];
     }
 }
 
@@ -194,18 +183,18 @@ void mul(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] * stoi(current.field_3);
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * stoi(current.field_3);
     }
     else
     {
-        register_values[file_num][current.field_1] = register_values[file_num][current.field_2] * register_values[file_num][current.field_3];
+        memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * memReqManager.register_values[file_num][current.field_3];
     }
 }
 
 void beq(int file_num)
 {
     struct Instruction current = instructs[file_num][PC[file_num]];
-    if (register_values[file_num][current.field_1] == register_values[file_num][current.field_2])
+    if (memReqManager.register_values[file_num][current.field_1] == memReqManager.register_values[file_num][current.field_2])
     {
         PC[file_num] = labelNo[file_num][current.field_3] - 1;
     }
@@ -217,7 +206,7 @@ void beq(int file_num)
 void bne(int file_num)
 {
     struct Instruction current = instructs[file_num][PC[file_num]];
-    if (register_values[file_num][current.field_1] != register_values[file_num][current.field_2])
+    if (memReqManager.register_values[file_num][current.field_1] != memReqManager.register_values[file_num][current.field_2])
     {
         PC[file_num] = labelNo[file_num][current.field_3] - 1;
     }
@@ -235,17 +224,17 @@ void slt(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        if (stoi(current.field_3) > register_values[file_num][current.field_2])
-            register_values[file_num][current.field_1] = 1;
+        if (stoi(current.field_3) > memReqManager.register_values[file_num][current.field_2])
+            memReqManager.register_values[file_num][current.field_1] = 1;
         else
-            register_values[file_num][current.field_1] = 0;
+            memReqManager.register_values[file_num][current.field_1] = 0;
     }
     else
     {
-        if (register_values[file_num][current.field_3] > register_values[file_num][current.field_2])
-            register_values[file_num][current.field_1] = 1;
+        if (memReqManager.register_values[file_num][current.field_3] > memReqManager.register_values[file_num][current.field_2])
+            memReqManager.register_values[file_num][current.field_1] = 1;
         else
-            register_values[file_num][current.field_1] = 0;
+            memReqManager.register_values[file_num][current.field_1] = 0;
     }
 }
 void addi(int file_number)
@@ -257,7 +246,7 @@ void addi(int file_number)
     }
     else
     {
-        register_values[file_number][current.field_1] = register_values[file_number][current.field_2] + stoi(current.field_3);
+        memReqManager.register_values[file_number][current.field_1] = memReqManager.register_values[file_number][current.field_2] + stoi(current.field_3);
     }
 }
 void j(int file_number)
@@ -295,14 +284,10 @@ void process()
 {
     while (true)
     {
-        clock_cycles++;
-        if (clock_cycles == 15)
-        {
-            break;
-        }
+        memReqManager.increment_cycles();
         tuple<bool, int, string> result = memReqManager.checkForWriteback();
         //boolean, file number, register
-        simulateDRAM();
+        memReqManager.simulate_DRAM();
         memReqManager.updateMRM();
         for (int i = 0; i < number_of_files; i++)
         {
@@ -325,15 +310,15 @@ void process()
                         else
                         {
                             //Register_list, //initialise register_usy to minus -1
-                            if (Register_list.find(current_instr.field_1) != Register_list.end() && register_busy[i][current_instr.field_1] != -1)
+                            if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                             {
                                 continue;
                             }
-                            if (Register_list.find(current_instr.field_2) != Register_list.end() && register_busy[i][current_instr.field_2] != -1)
+                            if (Register_list.find(current_instr.field_2) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_2] != -1)
                             {
                                 continue;
                             }
-                            if (Register_list.find(current_instr.field_3) != Register_list.end() && register_busy[i][current_instr.field_3] != -1)
+                            if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                             {
                                 continue;
                             }
@@ -350,11 +335,11 @@ void process()
                         }
                         else
                         {
-                            if (Register_list.find(current_instr.field_1) != Register_list.end() && register_busy[i][current_instr.field_1] != -1)
+                            if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                             {
                                 continue;
                             }
-                            if (Register_list.find(current_instr.field_2) != Register_list.end() && register_busy[i][current_instr.field_2] != -1)
+                            if (Register_list.find(current_instr.field_2) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_2] != -1)
                             {
                                 continue;
                             }
@@ -365,7 +350,7 @@ void process()
                 else if (current_instr_name == 9)
                 {
                     DRAM_ins temp;
-                    int address = register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
+                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
                     temp.ins_number = PC[i];
                     temp.type = 0;
                     temp.memory_address = address;
@@ -375,11 +360,11 @@ void process()
                     { //offset register is being written on
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_3) != Register_list.end() && register_busy[i][current_instr.field_3] != -1)
+                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                     {
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_1) != Register_list.end() && register_busy[i][current_instr.field_1] != -1)
+                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                     {
                         if (prevMemoryOperation[i].type == 0 && prevMemoryOperation[i].reg == current_instr.field_1)
                         {
@@ -415,18 +400,18 @@ void process()
                 else
                 {
                     DRAM_ins temp;
-                    int address = register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
+                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
                     temp.ins_number = PC[i];
                     temp.type = 1;
                     temp.memory_address = address;
                     temp.reg = current_instr.field_1;
-                    temp.value = register_values[i][current_instr.field_1];
+                    temp.value = memReqManager.register_values[i][current_instr.field_1];
                     temp.fileNumber = i;
-                    if (Register_list.find(current_instr.field_1) != Register_list.end() && register_busy[i][current_instr.field_1] != -1)
+                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                     {
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_3) != Register_list.end() && register_busy[i][current_instr.field_3] != -1)
+                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                     {
                         continue;
                     }
@@ -462,22 +447,23 @@ void process()
 
 int main(int argc, char *argv[])
 {
-    memReqManager = Memory_request_manager();
     if (argc < 5)
     {
         cout << "Invalid arguments\n";
         return -1;
     }
     //Taking file name, row and column access delays from the command line
+    int r, c;
     number_of_files = stoi(argv[1]);
     simulation_time = stoi(argv[2]);
-    ROW_ACCESS_DELAY = stoi(argv[3]);
-    COL_ACCESS_DELAY = stoi(argv[4]);
-    if (ROW_ACCESS_DELAY < 1 || COL_ACCESS_DELAY < 1 || number_of_files <= 0 || simulation_time <= 0)
+    r = stoi(argv[3]);
+    c = stoi(argv[4]);
+    if (r < 1 || c < 1 || number_of_files <= 0 || simulation_time <= 0)
     {
         cout << "Invalid arguments\n";
         return -1;
     }
+    memReqManager = Memory_request_manager(r, c);
     invalid_files.resize(number_of_files);
     for (int i = 0; i < number_of_files; i++)
     {
@@ -485,10 +471,9 @@ int main(int argc, char *argv[])
     }
     map_register_numbers();
     map_operations();
-    initialise_memory();
-    register_values.resize(number_of_files);
+    memReqManager.register_values.resize(number_of_files);
     instructs.resize(number_of_files);
-    register_busy.resize(number_of_files);
+    memReqManager.register_busy.resize(number_of_files);
     for (int i = 0; i < number_of_files; i++)
     {
         ifstream file("t" + to_string(i + 1) + ".txt");
@@ -522,7 +507,6 @@ int main(int argc, char *argv[])
     {
         PC.push_back(0);
     }
-    clock_cycles = 0;
     process();
     // PrintData();
     return 0;
