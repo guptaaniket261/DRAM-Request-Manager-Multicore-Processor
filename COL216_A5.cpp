@@ -62,13 +62,13 @@ string findInstruction(Instruction current)
     case 7:
         return "j " + ifZero(current.field_1);
         break;
-    case 8:
+    case 9:
         return "lw " + ifZero(current.field_1) + ", " + ifZero(current.field_2) + "(" + ifZero(current.field_3) + ")";
         break;
-    case 9:
+    case 10:
         return "sw " + ifZero(current.field_1) + ", " + ifZero(current.field_2) + "(" + ifZero(current.field_3) + ")";
         break;
-    case 10:
+    case 8:
         return "addi " + ifZero(current.field_1) + ", " + ifZero(current.field_2) + ", " + ifZero(current.field_3);
         break;
     }
@@ -93,12 +93,23 @@ void PrintData()
     for(int i=0;i<number_of_files;i++){
         
         cout << left << setw(30) << "Instructions CORE"+to_string(i+1);
-        cout << left << setw(20) << "Register CORE"+to_string(i+1);
+        cout << left << setw(30) << "Register CORE"+to_string(i+1);
         
     }
-    cout << left << setw(50) << "MRM";
-    cout << left << setw(50) << "DRAM";
+    cout << left << setw(40) << "MRM";
+    cout << left << setw(40) << "DRAM";
     cout << "\n\n";
+
+    for(int i=0;i<simulation_time;i++){
+        cout << left << setw(18) << i+1;
+        for(int j=0;j<number_of_files;j++){
+            cout << left << setw(30) << memReqManager.coreOpPrint[j][i];
+            cout << left << setw(30) << memReqManager.registerPrint[j][i];
+        }
+        cout << left << setw(40) << memReqManager.mrmPrint[i];
+        cout << left << setw(40) << memReqManager.program_dram.dramPrint[i];
+        cout<<endl;
+    }
     // for (auto u : prints)
     // {
     //     string cycle;
@@ -245,6 +256,7 @@ void sub(int file_num)
 
 void mul(int file_num)
 {
+    cout<<"f"<<endl;
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
@@ -353,25 +365,32 @@ void callFunction(int name, int file_num)
         break;
     case 2:
         sub(file_num);
+        break;
     case 3:
         mul(file_num);
+        break;
     case 4:
         beq(file_num);
+        break;
     case 5:
         bne(file_num);
+        break;
     case 6:
         slt(file_num);
+        break;
     case 7:
         j(file_num);
         break;
     case 8:
         addi(file_num);
+        break;
     }
 }
 
 
 void process()
 {
+    cout<<"f"<<endl;
     while (true)
     {
         memReqManager.increment_cycles();
@@ -398,6 +417,7 @@ void process()
             {
                 Instruction current_instr = instructs[i][PC[i]];
                 int current_instr_name = operation[current_instr.name];
+                cout<<current_instr.field_1<<"\n";
                 if (current_instr_name <= 8)
                 {
                     if (current_instr_name != 4 && current_instr_name != 5 && current_instr_name != 7)
@@ -591,14 +611,13 @@ void process()
 
 int main(int argc, char *argv[])
 {
-    cout<<"f"<<endl;
+    
     if (argc < 5)
     {
         cout << "Invalid arguments\n";
         return -1;
     }
-    cout<<"f";
-
+    
     //Taking file name, row and column access delays from the command line
     int r, c;
     number_of_files = stoi(argv[1]);
@@ -610,10 +629,10 @@ int main(int argc, char *argv[])
         cout << "Invalid arguments\n";
         return -1;
     }
-    cout<<"f";
+    
 
     memReqManager.set(r, c);
-    cout<<"f";
+    
 
     invalid_files.resize(number_of_files);
     for (int i = 0; i < number_of_files; i++)
@@ -627,20 +646,23 @@ int main(int argc, char *argv[])
     memReqManager.register_values.resize(number_of_files);
     instructs.resize(number_of_files);
     memReqManager.register_busy.resize(number_of_files);
-    cout<<"f";
+    
 
     for (int i = 0; i < number_of_files; i++)
     {
-        ifstream file("t" + to_string(i + 1) + ".txt");
+        string filename = "t" + to_string(i + 1) + ".txt";
+        ifstream file(filename);
         string current_line;
         initialise_Registers(i);
         while (getline(file, current_line))
         {
+            cout<<current_line<<endl;
             if (ifEmpty(current_line))
                 continue;
             pair<int, Instruction> temp = Create_structs(current_line, Register_list, instructs[i].size());
             if (temp.first == 1)
             {
+                cout<<temp.second.field_1<<"\n";
                 temp.second.file_name = i;
                 instructs[i].push_back(temp.second);
                 //cout<<temp.second.name<<" "<<instructs.size()<<endl;
@@ -651,6 +673,7 @@ int main(int argc, char *argv[])
             }
             else
             {
+                cout<<"f"<<endl;
                 invalid_files[i] = true;
             }
         }
@@ -662,7 +685,7 @@ int main(int argc, char *argv[])
         PC.push_back(0);
     }
     process();
-    cout<<"f";
-    //PrintData();
+    
+    PrintData();
     return 0;
 }

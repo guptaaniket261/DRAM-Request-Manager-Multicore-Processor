@@ -92,6 +92,7 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
 int Memory_request_manager::totalBufferSize(){
     int count =0;
     for(int i=0;i<1024;i++)count+=bufferSize[i];
+    return count;
 }
 
 void Memory_request_manager::updateMRM()

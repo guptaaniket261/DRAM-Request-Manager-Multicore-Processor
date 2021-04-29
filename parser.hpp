@@ -271,7 +271,7 @@ bool ifEmpty(string temp)
 {
     for (int i = 0; i < temp.size(); i++)
     {
-        if (temp[i] != ' ' && temp[i] != '\t')
+        if (temp[i] != ' ' && temp[i] != '\t' && temp[i]!='\n')
         {
             return false;
         }
@@ -285,6 +285,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
     bool instruction_found = false;
     struct Instruction new_instr;
     // each line can contain atmost one instruction
+    cout<<file_string.size()<<endl;
     new_instr.name = ""; //default name
     file_string = removeComments(file_string);
     if (ifEmpty(file_string))
@@ -311,12 +312,14 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
             if (instruction_found)
             {
                 //validFile = false;
+                cout<<"heck";
                 return {0, new_instr};
             } //if we have already found an instruction and a character appears, file is invalid
             string ins = Match_Instruction(i, file_string.size() - 1, file_string);
             if (ins == "")
             { //invalid matching
                 //validFile = false;
+                cout<<"heck";
                 return {0, new_instr};
             }
 
@@ -336,6 +339,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (reg1_start == -1)
                 {
                     //validFile = false;
+                    cout<<"heck";
                     return {0, new_instr};
                 }
                 string R1 = file_string.substr(reg1_start, 3);
@@ -344,12 +348,14 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (comma1Pos == -1)
                 {
                     //validFile = false;
+                    cout<<"heck1";
                     return {0, new_instr};
                 }
                 int reg2_start = SearchForRegister(comma1Pos + 1, file_string.size() - 1, file_string, Register_list);
                 if (reg2_start == -1)
                 {
                     //validFile = false;
+                    cout<<"heck2";
                     return {0, new_instr};
                 }
                 string R2 = file_string.substr(reg2_start, 3);
@@ -357,6 +363,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (comma2Pos == -1)
                 {
                     //validFile = false;
+                    cout<<"heck3";
                     return {0, new_instr};
                 }
                 int reg3_start = SearchForRegister(comma2Pos + 1, file_string.size() - 1, file_string, Register_list);
@@ -368,6 +375,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (reg3_start == -1 && integer_indices.first == -1 && !labeldata.first)
                 {
                     //validFile = false;
+                    cout<<"heck4";
                     return {0, new_instr};
                 } //neither an integer nor a string
                 string R3;
@@ -381,6 +389,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                     else
                     { //beq,bne and addi must have the third argument as an integer
                         //validFile = false;
+                        cout<<"heck5";
                         return {0, new_instr};
                     }
                 }
@@ -393,7 +402,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                     }
                     else
                     {
-
+                        cout<<"heck6";
                         return {0, new_instr};
                     }
                 }
@@ -407,6 +416,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                     }
                     else
                     {
+                        cout<<"heck6";
                         return {0, new_instr};
                     }
                 }
@@ -431,6 +441,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 pair<bool, pair<string, int>> lblTOpc = findLabel(file_string, i + 1);
                 if (!lblTOpc.first)
                 {
+                    cout<<"heck7";
                     return {0, new_instr};
                 }
                 new_instr.name = ins;
@@ -450,6 +461,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (reg1_start == -1)
                 {
                     //validFile = false;
+                    cout<<"heck8";
                     return {0, new_instr};
                 }
                 string R1 = file_string.substr(reg1_start, 3);
@@ -458,6 +470,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (commaPos == -1)
                 {
                     //validFile = false;
+                    cout<<"heck9";
                     return {0, new_instr};
                 }
                 // now we will search for an integer offset and match it
@@ -465,6 +478,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (integer_indices.first == -1)
                 {
                     //validFile = false;
+                    cout<<"hecka";
                     return {0, new_instr};
                 }
                 string offset = file_string.substr(integer_indices.first, integer_indices.second - integer_indices.first + 1);
@@ -473,6 +487,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (lparenPos == -1)
                 {
                     //validFile = false;
+                    cout<<"heckb";
                     return {0, new_instr};
                 }
                 //now we will match a register
@@ -480,6 +495,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (reg2_start == -1)
                 {
                     //validFile = false;
+                    cout<<"heckc";
                     return {0, new_instr};
                 }
                 string R2 = file_string.substr(reg2_start, 3);
@@ -488,6 +504,7 @@ pair<int, Instruction> Create_structs(string file_string, set<string> Register_l
                 if (rparenPos == -1)
                 {
                     //validFile = false;
+                    cout<<"heckd";
                     return {0, new_instr};
                 }
                 new_instr.name = ins;
