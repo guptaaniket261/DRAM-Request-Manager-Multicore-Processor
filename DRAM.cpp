@@ -12,6 +12,9 @@ DRAM::DRAM(int r, int c)
         ROW_BUFFER[i] = 0;
     }
     clock_cycles = 0;
+    DRAM_PRIORITY_ROW = -1;
+    DRAM_ROW_BUFFER = -1;
+
 }
 bool DRAM::checkIfRunning()
 {

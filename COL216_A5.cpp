@@ -77,73 +77,27 @@ string findInstruction(Instruction current)
 
 void PrintData()
 {
-    // cout << "\nTotal number of cycles: " << clock_cycles << endl;
-    // cout << "Total number of row buffer updates(loading new row into buffer or modifying row buffer): " << row_buffer_updates << endl;
-    // cout << "\nMemory content at the end of the execution:\n\n";
-    // for (int i = 0; i < (1 << 20); i += 4)
-    // {
-    //     if (memory[i] != 0)
-    //     {
-    //         cout << i << "-" << i + 3 << ": " << memory[i] << endl;
-    //     }
-    // }
-    // cout << endl;
-    // cout << "Every cycle description\n\n";
-    cout << left << setw(18) << "Cycle numbers";
+    cout << left << setw(15) << "Cycle numbers";
     for(int i=0;i<number_of_files;i++){
         
-        cout << left << setw(30) << "Instructions CORE"+to_string(i+1);
-        cout << left << setw(30) << "Register CORE"+to_string(i+1);
+        cout << left << setw(25) << "Instructions CORE"+to_string(i+1);
+        cout << left << setw(25) << "Register CORE"+to_string(i+1);
         
     }
-    cout << left << setw(40) << "MRM";
-    cout << left << setw(40) << "DRAM";
+    cout << left << setw(50) << "MRM";
+    cout << left << setw(50) << "DRAM";
     cout << "\n\n";
 
     for(int i=0;i<simulation_time;i++){
-        cout << left << setw(18) << i+1;
+        cout << left << setw(15) << i+1;
         for(int j=0;j<number_of_files;j++){
-            cout << left << setw(30) << memReqManager.coreOpPrint[j][i];
-            cout << left << setw(30) << memReqManager.registerPrint[j][i];
+            cout << left << setw(25) << memReqManager.coreOpPrint[j][i];
+            cout << left << setw(25) << memReqManager.registerPrint[j][i];
         }
-        cout << left << setw(40) << memReqManager.mrmPrint[i];
-        cout << left << setw(40) << memReqManager.program_dram.dramPrint[i];
+        cout << left << setw(50) << memReqManager.mrmPrint[i];
+        cout << left << setw(50) << memReqManager.program_dram.dramPrint[i];
         cout<<endl;
     }
-    // for (auto u : prints)
-    // {
-    //     string cycle;
-    //     if (u.startingCycle == u.endingCycle)
-    //     {
-    //         cycle = "cycle " + to_string(u.startingCycle) + ":";
-    //     }
-    //     else
-    //     {
-    //         cycle = "cycle " + to_string(u.startingCycle) + "-" + to_string(u.endingCycle) + ":";
-    //     }
-    //     cout << left << setw(18) << cycle;
-    //     cout << left << setw(30) << u.instruction;
-    //     cout << left << setw(20) << ifZero(u.RegisterChanged);
-    //     cout << left << setw(50) << u.DRAMoperation;
-    //     cout << left << setw(30) << ifZero(u.DRAMchanges);
-    //     cout << left << setw(40) << u.address;
-    //     cout << "\n";
-    // }
-    // cout << "\n";
-    // cout << "The number of times each instruction was read is given below : \n"
-    //      << endl;
-    // for (int i = 0; i < instructs.size(); i++)
-    // {
-    //     cout << "Instruction no: " << std::dec << i + 1 << " was read " << std::dec << ins_count[i] << " times." << endl;
-    // }
-
-    // cout << "\nThe number of times each type of instruction was executed is given below : \n"
-    //      << endl;
-    // for (int i = 1; i < 11; i++)
-    // {
-    //     cout << "Operation " << intTostr_operation[i] << " was executed " << std::dec << op_count[i] << " times." << endl;
-    // }
-    // cout << endl;
 }
 
 
@@ -224,13 +178,15 @@ void add(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + stoi(current.field_3);
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
     else
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + memReqManager.register_values[file_num][current.field_3];
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
 }
 
@@ -244,13 +200,15 @@ void sub(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - stoi(current.field_3);
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
     else
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - memReqManager.register_values[file_num][current.field_3];
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
 }
 
@@ -265,13 +223,15 @@ void mul(int file_num)
     }
     else if (is_integer(current.field_3))
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * stoi(current.field_3);
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
     else
     {
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * memReqManager.register_values[file_num][current.field_3];
+        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+
     }
 }
 
@@ -342,8 +302,8 @@ void addi(int file_number)
     }
     else
     {
-        memReqManager.registerPrint[file_number].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_number][current.field_1]));
         memReqManager.register_values[file_number][current.field_1] = memReqManager.register_values[file_number][current.field_2] + stoi(current.field_3);
+        memReqManager.registerPrint[file_number].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_number][current.field_1]));
     }
 }
 
@@ -486,6 +446,7 @@ void process()
                 }
                 else if (current_instr_name == 9)
                 {
+                    PC[i]++;
                     DRAM_ins temp;
                     int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
                     temp.ins_number = PC[i];
@@ -641,12 +602,14 @@ int main(int argc, char *argv[])
     }
     map_register_numbers();
     map_operations();
+    memReqManager.mrmBuffer.resize(number_of_files);
+    memReqManager.justReceived.resize(number_of_files);
     memReqManager.coreOpPrint.resize(number_of_files);
     memReqManager.registerPrint.resize(number_of_files);
     memReqManager.register_values.resize(number_of_files);
     instructs.resize(number_of_files);
     memReqManager.register_busy.resize(number_of_files);
-    
+    prevMemoryOperation.resize(number_of_files);
 
     for (int i = 0; i < number_of_files; i++)
     {
