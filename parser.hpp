@@ -33,7 +33,9 @@ bool is_integer(string s)
 
 map<string, int> getLabels()
 {
-    return labels;
+    map<string, int> res = labels;
+    labels.clear();
+    return res;
 }
 
 int SearchForRegister(int starting_index, int ending_index, string file_string, set<string> Register_list)

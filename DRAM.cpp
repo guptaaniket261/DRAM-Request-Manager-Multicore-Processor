@@ -17,7 +17,11 @@ bool DRAM::checkIfRunning()
 {
     return running;
 }
-
+void DRAM::setDRAM(int r, int c)
+{
+    ROW_ACCESS_DELAY = r;
+    COL_ACCESS_DELAY = c;
+}
 void DRAM::setRunning(int starting_cycle)
 {
     running = true;

@@ -34,6 +34,14 @@ void Memory_request_manager::simulate_DRAM()
 {
     program_dram.update_DRAM();
 }
+int Memory_request_manager::get_clock_cycles()
+{
+    return program_dram.clock_cycles;
+}
+void Memory_request_manager::set(int r, int c)
+{
+    program_dram.setDRAM(r, c);
+}
 void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
 {
     if (flag == 0)

@@ -285,13 +285,18 @@ void process()
     while (true)
     {
         memReqManager.increment_cycles();
+        int curr_cycles = memReqManager.get_clock_cycles();
+        if (curr_cycles == simulation_time + 1)
+        {
+            break;
+        }
         tuple<bool, int, string> result = memReqManager.checkForWriteback();
         //boolean, file number, register
         memReqManager.simulate_DRAM();
         memReqManager.updateMRM();
         for (int i = 0; i < number_of_files; i++)
         {
-            if (invalid_files[i])
+            if (invalid_files[i] || PC[i] >= instructs[i].size())
             {
                 continue;
             }
@@ -463,7 +468,7 @@ int main(int argc, char *argv[])
         cout << "Invalid arguments\n";
         return -1;
     }
-    memReqManager = Memory_request_manager(r, c);
+    memReqManager.set(r, c);
     invalid_files.resize(number_of_files);
     for (int i = 0; i < number_of_files; i++)
     {
@@ -499,9 +504,8 @@ int main(int argc, char *argv[])
                 invalid_files[i] = true;
             }
         }
-        labelNo[i] = getLabels();
+        labelNo.push_back(getLabels());
     }
-
     //check for invalid lw/sw addresses
     for (int i = 0; i < number_of_files; i++) //initializing program counter for each of the files
     {

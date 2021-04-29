@@ -24,6 +24,7 @@ public:
     DRAM(int, int); //row access, col access
     bool checkIfRunning();
     void setRunning(int);
+    void setDRAM(int, int);
     void activateRow(int);
     void writeBackRow();
     void update_DRAM();

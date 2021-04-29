@@ -25,6 +25,8 @@ public:
     void increment_cycles();
     void simulate_DRAM();
     void sendToMRM(DRAM_ins, int);
+    void set(int, int);
+    int get_clock_cycles();
     map<int, string> register_numbers;        //maps each number in 0-31 to a register
     vector<map<string, int>> register_values; //stores the value of data stored in each register
     //each vector element stores register,values for a particular file
