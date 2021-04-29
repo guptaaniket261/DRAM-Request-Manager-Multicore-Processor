@@ -16,9 +16,11 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
     if (program_dram.current_state == 1)
     {
+        registerPrint[program_dram.writeBack.fileNumber].push_back(program_dram.writeBack.reg +" = " + to_string(program_dram.writeBack.value));
         register_values[program_dram.writeBack.fileNumber][program_dram.writeBack.reg] = program_dram.writeBack.value;
         //this means a writeback is being done in current cycle
         program_dram.current_state = 0;
+        register_busy[program_dram.writeBack.fileNumber][program_dram.writeBack.reg] = -1;
         return {true, program_dram.writeBack.fileNumber, program_dram.writeBack.reg};
     }
     else
@@ -42,6 +44,7 @@ void Memory_request_manager::set(int r, int c)
 {
     program_dram.setDRAM(r, c);
 }
+
 void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
 {
     if (flag == 0)
@@ -85,12 +88,20 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
         }
     }
 }
+
+int Memory_request_manager::totalBufferSize(){
+    int count =0;
+    for(int i=0;i<1024;i++)count+=bufferSize[i];
+}
+
 void Memory_request_manager::updateMRM()
 {
-    if (program_dram.start_cycle == program_dram.clock_cycles)
+    if (program_dram.start_cycle == program_dram.clock_cycles){
+        mrmPrint.push_back("updating pointers"); // updating pointers for last dram instruction sent
         return;
+    }
     bool res = program_dram.checkIfRunning();
-    if (!res)
+    if (!res && totalBufferSize()>0)
     {
         //in this case, alot a new instruction
         //row_buffer =-1, or row buffer has an empty row one cycle for combinational logic. else send to DRAM
@@ -102,7 +113,8 @@ void Memory_request_manager::updateMRM()
                 for (int j = 0; j < mrmBuffer[i].size(); j++)
                 {
                     program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
-                    program_dram.setRunning(program_dram.clock_cycles + 1);
+                    mrmPrint.push_back("check new row buffer");
+                    // program_dram.setRunning(program_dram.clock_cycles + 1);
                     break;
                 }
             }
@@ -127,8 +139,13 @@ void Memory_request_manager::updateMRM()
                     justReceived[i].pop_front();
                     justReceivedSize--;
                     mrmBuffer[i].push_back(temp);
+                    bufferSize[temp.memory_address/1024]++;
                 }
             }
+            mrmPrint.push_back("Changing pointers for just arrived instructions");
+        }
+        else{
+            mrmPrint.push_back("IDLE");
         }
     }
     //we are taking one cycle to assign a new instruction (by popping from buffer) due to pointer updations in ll and hashmap
@@ -156,6 +173,15 @@ void Memory_request_manager::allot_new_instruction(int row_number)
             if (((temp.memory_address) / 1024 == row_number) && !found)
             {
                 program_dram.DRAMcurrentIns = temp;
+                bufferSize[(temp.memory_address) / 1024]--;
+                string t1;
+                if(temp.type==0){
+                    t1 = "lw";
+                }
+                else{
+                    t1 = "sw";
+                }
+                mrmPrint.push_back("passing new instruction to DRAM: "+ t1 +" " + temp.reg + " " + to_string(temp.memory_address));
                 found = true;
             }
             else

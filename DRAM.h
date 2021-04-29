@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <set>
 #include <queue>
+#include "print.hpp"
 using namespace std;
 
 struct DRAM_ins
@@ -44,4 +45,5 @@ public:
     int cycle_type;
     int writeback_row_number;
     int current_state = 0;
+    vector<string> dramPrint;
 };

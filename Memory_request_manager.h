@@ -8,11 +8,16 @@
 #include <set>
 #include <queue>
 #include "DRAM.h"
+
 using namespace std;
 
 class Memory_request_manager
 {
 public:
+    vector<vector<string>> coreOpPrint;
+    vector<vector<string>> registerPrint;
+    vector<string> mrmPrint;
+    int totalBufferSize();
     Memory_request_manager(int, int);
     vector<deque<DRAM_ins>> mrmBuffer;
     vector<deque<DRAM_ins>> justReceived;
