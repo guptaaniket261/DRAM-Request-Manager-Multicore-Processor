@@ -77,29 +77,33 @@ string findInstruction(Instruction current)
 
 void PrintData()
 {
-    cout << left << setw(15) << "Cycle numbers";
-    for(int i=0;i<number_of_files;i++){
-        
-        cout << left << setw(25) << "Instructions CORE"+to_string(i+1);
-        cout << left << setw(25) << "Register CORE"+to_string(i+1);
-        
-    }
-    cout << left << setw(50) << "MRM";
-    cout << left << setw(50) << "DRAM";
-    cout << "\n\n";
+    ofstream fout;
+    fout.open("output.txt");
+    fout << left << setw(15) << "Cycle numbers";
+    for (int i = 0; i < number_of_files; i++)
+    {
 
-    for(int i=0;i<simulation_time;i++){
-        cout << left << setw(15) << i+1;
-        for(int j=0;j<number_of_files;j++){
-            cout << left << setw(25) << memReqManager.coreOpPrint[j][i];
-            cout << left << setw(25) << memReqManager.registerPrint[j][i];
+        fout << left << setw(25) << "Instructions CORE" + to_string(i + 1);
+        fout << left << setw(25) << "Register CORE" + to_string(i + 1);
+    }
+    fout << left << setw(100) << "MRM";
+    fout << left << setw(50) << "DRAM";
+    fout << "\n\n";
+
+    for (int i = 0; i < simulation_time; i++)
+    {
+        fout << left << setw(15) << i + 1;
+        for (int j = 0; j < number_of_files; j++)
+        {
+            fout << left << setw(25) << memReqManager.coreOpPrint[j][i];
+            fout << left << setw(25) << memReqManager.registerPrint[j][i];
         }
-        cout << left << setw(50) << memReqManager.mrmPrint[i];
-        cout << left << setw(50) << memReqManager.program_dram.dramPrint[i];
-        cout<<endl;
+        fout << left << setw(100) << memReqManager.mrmPrint[i];
+        fout << left << setw(50) << memReqManager.program_dram.dramPrint[i];
+        fout << endl;
     }
+    fout.close();
 }
-
 
 void map_register_numbers()
 {
@@ -179,14 +183,12 @@ void add(int file_num)
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -201,20 +203,17 @@ void sub(int file_num)
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
 void mul(int file_num)
 {
-    cout<<"f"<<endl;
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
@@ -224,14 +223,12 @@ void mul(int file_num)
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
-
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -249,7 +246,6 @@ void beq(int file_num)
     memReqManager.registerPrint[file_num].push_back("IDLE");
 }
 
-
 void bne(int file_num)
 {
     struct Instruction current = instructs[file_num][PC[file_num]];
@@ -263,7 +259,6 @@ void bne(int file_num)
     }
     memReqManager.registerPrint[file_num].push_back("IDLE");
 }
-
 
 void slt(int file_num)
 {
@@ -279,7 +274,7 @@ void slt(int file_num)
             memReqManager.register_values[file_num][current.field_1] = 1;
         else
             memReqManager.register_values[file_num][current.field_1] = 0;
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
@@ -287,10 +282,9 @@ void slt(int file_num)
             memReqManager.register_values[file_num][current.field_1] = 1;
         else
             memReqManager.register_values[file_num][current.field_1] = 0;
-        memReqManager.registerPrint[file_num].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
-
 
 void addi(int file_number)
 {
@@ -303,10 +297,9 @@ void addi(int file_number)
     else
     {
         memReqManager.register_values[file_number][current.field_1] = memReqManager.register_values[file_number][current.field_2] + stoi(current.field_3);
-        memReqManager.registerPrint[file_number].push_back(current.field_1+" = "+to_string(memReqManager.register_values[file_number][current.field_1]));
+        memReqManager.registerPrint[file_number].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_number][current.field_1]));
     }
 }
-
 
 void j(int file_number)
 {
@@ -347,10 +340,9 @@ void callFunction(int name, int file_num)
     }
 }
 
-
 void process()
 {
-    cout<<"f"<<endl;
+
     while (true)
     {
         memReqManager.increment_cycles();
@@ -368,7 +360,8 @@ void process()
             if (invalid_files[i] || PC[i] >= instructs[i].size())
             {
                 memReqManager.coreOpPrint[i].push_back("IDLE");
-                if(get<1>(result)!=i){
+                if (get<1>(result) != i)
+                {
                     memReqManager.registerPrint[i].push_back("IDLE");
                 }
                 continue;
@@ -377,7 +370,7 @@ void process()
             {
                 Instruction current_instr = instructs[i][PC[i]];
                 int current_instr_name = operation[current_instr.name];
-                cout<<current_instr.field_1<<"\n";
+
                 if (current_instr_name <= 8)
                 {
                     if (current_instr_name != 4 && current_instr_name != 5 && current_instr_name != 7)
@@ -446,7 +439,7 @@ void process()
                 }
                 else if (current_instr_name == 9)
                 {
-                    PC[i]++;
+                    //PC[i]++;
                     DRAM_ins temp;
                     int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
                     temp.ins_number = PC[i];
@@ -467,13 +460,16 @@ void process()
                     }
                     if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                     {
+                        //&& !(memReqManager.program_dram.DRAMcurrentIns.type == 0 && memReqManager.program_dram.DRAMcurrentIns.reg == current_instr.field_1)
                         if (prevMemoryOperation[i].type == 0 && prevMemoryOperation[i].reg == current_instr.field_1)
                         {
+
                             if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                             {
                                 prevMemoryOperation[i] = temp;
                                 memReqManager.sendToMRM(temp, 1);
                                 memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.register_busy[i][temp.reg] = address / 1024;
                                 memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
                                 PC[i]++;
                                 continue;
@@ -492,12 +488,13 @@ void process()
                             continue;
                         }
                     }
-                    
+
                     if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                     {
                         memReqManager.registerPrint[i].push_back("IDLE");
                         memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
                         prevMemoryOperation[i] = temp;
+                        memReqManager.register_busy[i][temp.reg] = address / 1024;
                         memReqManager.sendToMRM(temp, 0);
                         PC[i]++;
                         continue;
@@ -572,13 +569,13 @@ void process()
 
 int main(int argc, char *argv[])
 {
-    
+
     if (argc < 5)
     {
         cout << "Invalid arguments\n";
         return -1;
     }
-    
+
     //Taking file name, row and column access delays from the command line
     int r, c;
     number_of_files = stoi(argv[1]);
@@ -590,10 +587,8 @@ int main(int argc, char *argv[])
         cout << "Invalid arguments\n";
         return -1;
     }
-    
 
     memReqManager.set(r, c);
-    
 
     invalid_files.resize(number_of_files);
     for (int i = 0; i < number_of_files; i++)
@@ -619,13 +614,12 @@ int main(int argc, char *argv[])
         initialise_Registers(i);
         while (getline(file, current_line))
         {
-            cout<<current_line<<endl;
+
             if (ifEmpty(current_line))
                 continue;
             pair<int, Instruction> temp = Create_structs(current_line, Register_list, instructs[i].size());
             if (temp.first == 1)
             {
-                cout<<temp.second.field_1<<"\n";
                 temp.second.file_name = i;
                 instructs[i].push_back(temp.second);
                 //cout<<temp.second.name<<" "<<instructs.size()<<endl;
@@ -636,7 +630,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                cout<<"f"<<endl;
+
                 invalid_files[i] = true;
             }
         }
@@ -648,7 +642,7 @@ int main(int argc, char *argv[])
         PC.push_back(0);
     }
     process();
-    
+
     PrintData();
     return 0;
 }

@@ -14,7 +14,6 @@ DRAM::DRAM(int r, int c)
     clock_cycles = 0;
     DRAM_PRIORITY_ROW = -1;
     DRAM_ROW_BUFFER = -1;
-
 }
 bool DRAM::checkIfRunning()
 {
@@ -82,11 +81,13 @@ void DRAM::update_DRAM()
         if (cycle_type == 0)
         {
             //print column access number, and the corresponding instruction etc.
-            if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type==1){
-                dramPrint.push_back(to_string(DRAMcurrentIns.memory_address)+"-"+to_string(DRAMcurrentIns.memory_address+3)+"="+to_string(DRAMcurrentIns.value));
+            if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type == 1)
+            {
+                dramPrint.push_back(to_string(DRAMcurrentIns.memory_address) + "-" + to_string(DRAMcurrentIns.memory_address + 3) + "=" + to_string(DRAMcurrentIns.value));
             }
-            else{
-                dramPrint.push_back("Column Access "+to_string(DRAMcurrentIns.memory_address%1024));
+            else
+            {
+                dramPrint.push_back("Column Access " + to_string(DRAMcurrentIns.memory_address % 1024));
             }
         }
         else if (cycle_type == 1)
@@ -94,16 +95,18 @@ void DRAM::update_DRAM()
             if (start_cycle + ROW_ACCESS_DELAY > clock_cycles)
             {
                 //activation
-                dramPrint.push_back("Activate row "+to_string(DRAMcurrentIns.memory_address/1024));
+                dramPrint.push_back("Activate row " + to_string(DRAMcurrentIns.memory_address / 1024));
             }
             else
             {
                 //print column access no. etc
-                if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type==1){
-                    dramPrint.push_back(to_string(DRAMcurrentIns.memory_address)+"-"+to_string(DRAMcurrentIns.memory_address+3)+"="+to_string(DRAMcurrentIns.value));
+                if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type == 1)
+                {
+                    dramPrint.push_back(to_string(DRAMcurrentIns.memory_address) + "-" + to_string(DRAMcurrentIns.memory_address + 3) + "=" + to_string(DRAMcurrentIns.value));
                 }
-                else{
-                    dramPrint.push_back("Column Access "+to_string(DRAMcurrentIns.memory_address%1024));
+                else
+                {
+                    dramPrint.push_back("Column Access " + to_string(DRAMcurrentIns.memory_address % 1024));
                 }
             }
         }
@@ -112,20 +115,22 @@ void DRAM::update_DRAM()
             if (start_cycle + ROW_ACCESS_DELAY > clock_cycles)
             {
                 //writeback the row
-                dramPrint.push_back("Writeback row "+to_string(writeback_row_number));
+                dramPrint.push_back("Writeback row " + to_string(writeback_row_number));
             }
             else if (start_cycle + 2 * ROW_ACCESS_DELAY > clock_cycles)
             {
-                dramPrint.push_back("Activate row "+to_string(DRAMcurrentIns.memory_address/1024));
+                dramPrint.push_back("Activate row " + to_string(DRAMcurrentIns.memory_address / 1024));
             }
             else
             {
                 //column access
-                if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type==1){
-                    dramPrint.push_back(to_string(DRAMcurrentIns.memory_address)+"-"+to_string(DRAMcurrentIns.memory_address+3)+"="+to_string(DRAMcurrentIns.value));
+                if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles && DRAMcurrentIns.type == 1)
+                {
+                    dramPrint.push_back(to_string(DRAMcurrentIns.memory_address) + "-" + to_string(DRAMcurrentIns.memory_address + 3) + "=" + to_string(DRAMcurrentIns.value));
                 }
-                else{
-                    dramPrint.push_back("Column Access "+to_string(DRAMcurrentIns.memory_address%1024));
+                else
+                {
+                    dramPrint.push_back("Column Access " + to_string(DRAMcurrentIns.memory_address % 1024));
                 }
             }
         }

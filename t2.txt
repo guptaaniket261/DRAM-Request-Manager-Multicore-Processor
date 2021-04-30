@@ -1,3 +1,5 @@
 mul $t0, $t0, $zero
-addi $t0, $t0, 5
-add $t3, $t3, $t0
+lw $t1, 1040($zero)
+mul $t1, $t1,$t1
+addi $t3, $t3, 20
+sw $t3, 1040($zero)

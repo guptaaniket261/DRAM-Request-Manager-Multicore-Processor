@@ -23,7 +23,7 @@ public:
     vector<deque<DRAM_ins>> justReceived;
     int justReceivedSize = 0;
     bool pointer_change_state;
-    void allot_new_instruction(int);
+    string allot_new_instruction(int);
     int bufferSize[1024] = {};
     tuple<bool, int, string> checkForWriteback();
     void updateMRM();

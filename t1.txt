@@ -1,3 +1,5 @@
-add $t3, $t3, $t0
-addi $t0, $t0, 5
 lw $t1, 100($zero)
+addi $t1,$t1, 30
+lw $t1, 200($zero)
+lw $t3, 200($t1)
+lw $t1, 300($zero)
