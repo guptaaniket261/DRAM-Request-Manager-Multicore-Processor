@@ -55,3 +55,9 @@ For i ranging from 0 to n
 //total no. of instructions executed for each core
 //total number of row buffer updates
 //non zero-memory print
+//ins no.: 		core :  , .....
+
+//forwarding, forwarding + optimizations, lw,sw optimizations, dependent instructions, multiple register writes tried in the same cycle
+//separate folder for each t.c, 4 cores minimal
+// odd - Ishaan (forwarding,lw, dependent instructions)
+// even - Aniket
