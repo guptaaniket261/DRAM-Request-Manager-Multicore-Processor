@@ -50,3 +50,8 @@ For i ranging from 0 to n
 			else
 			  send flag(0)
 			  update PC;
+
+//print CPI
+//total no. of instructions executed for each core
+//total number of row buffer updates
+//non zero-memory print

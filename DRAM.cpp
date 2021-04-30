@@ -1,6 +1,7 @@
 #include "DRAM.h"
 DRAM::DRAM(int r, int c)
 {
+    start_cycle = 0;
     ROW_ACCESS_DELAY = r;
     COL_ACCESS_DELAY = c;
     for (int i = 0; i < (1 << 20); i++)
@@ -66,8 +67,9 @@ void DRAM::updateMemory()
 void DRAM::sendToWrite_mrm()
 {
     current_state = 1;
-    writeBack = DRAMcurrentIns;
-    writeBack.value = ROW_BUFFER[DRAMcurrentIns.memory_address % 1024];
+    DRAMcurrentIns.value = ROW_BUFFER[DRAMcurrentIns.memory_address % 1024];
+    writeBack.push_back(DRAMcurrentIns);
+    //writeBack.value = ROW_BUFFER[DRAMcurrentIns.memory_address % 1024];
 }
 void DRAM::update_DRAM()
 {
@@ -137,18 +139,24 @@ void DRAM::update_DRAM()
         if (start_cycle + cycle_type * ROW_ACCESS_DELAY + COL_ACCESS_DELAY - 1 == clock_cycles)
         {
             running = false;
+
             if (cycle_type == 2)
             {
                 writeBackRow();
                 activateRow(DRAM_ROW_BUFFER);
+                buffer_updates += 1;
             }
             else if (cycle_type == 1)
             {
                 activateRow(DRAM_ROW_BUFFER);
+                buffer_updates += 1;
             }
             if (DRAMcurrentIns.type == 1)
             {
+                instructions_per_core[DRAMcurrentIns.fileNumber]++;
                 updateMemory();
+                buffer_updates += 1;
+                dramCycle = max(dramCycle, clock_cycles);
             }
             else
             {

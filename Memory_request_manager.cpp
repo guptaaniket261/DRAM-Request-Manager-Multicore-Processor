@@ -16,10 +16,10 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
     if (program_dram.current_state == 1)
     {
-        registerPrint[program_dram.writeBack.fileNumber].push_back(program_dram.writeBack.reg + " = " + to_string(program_dram.writeBack.value));
-        register_values[program_dram.writeBack.fileNumber][program_dram.writeBack.reg] = program_dram.writeBack.value;
+        registerPrint[program_dram.writeBack.front().fileNumber].push_back(program_dram.writeBack.front().reg + " = " + to_string(program_dram.writeBack.front().value));
+        register_values[program_dram.writeBack.front().fileNumber][program_dram.writeBack.front().reg] = program_dram.writeBack.front().value;
+        program_dram.dramCycle = max(program_dram.dramCycle, program_dram.clock_cycles);
         //this means a writeback is being done in current cycle
-        program_dram.current_state = 0;
         //mrmBuffer, justrecieved
         bool found = false;
         for (int i = 0; i < mrmBuffer.size(); i++)
@@ -27,7 +27,7 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
             for (int j = 0; j < mrmBuffer[i].size(); j++)
             {
                 DRAM_ins temp = mrmBuffer[i][j];
-                if (temp.type == 0 && temp.fileNumber == program_dram.writeBack.fileNumber && temp.reg == program_dram.writeBack.reg)
+                if (temp.type == 0 && temp.fileNumber == program_dram.writeBack.front().fileNumber && temp.reg == program_dram.writeBack.front().reg)
                 {
                     found = true;
                     break;
@@ -39,7 +39,7 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
             for (int j = 0; j < justReceived[i].size(); j++)
             {
                 DRAM_ins temp = justReceived[i][j];
-                if (temp.type == 0 && temp.fileNumber == program_dram.writeBack.fileNumber && temp.reg == program_dram.writeBack.reg)
+                if (temp.type == 0 && temp.fileNumber == program_dram.writeBack.front().fileNumber && temp.reg == program_dram.writeBack.front().reg)
                 {
                     found = true;
                     break;
@@ -48,9 +48,17 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
         }
         if (!found)
         {
-            register_busy[program_dram.writeBack.fileNumber][program_dram.writeBack.reg] = -1;
+            register_busy[program_dram.writeBack.front().fileNumber][program_dram.writeBack.front().reg] = -1;
         } ////@error
-        return {true, program_dram.writeBack.fileNumber, program_dram.writeBack.reg};
+        program_dram.instructions_per_core[program_dram.writeBack.front().fileNumber]++;
+        int file_num = program_dram.writeBack.front().fileNumber;
+        string reg1 = program_dram.writeBack.front().reg;
+        program_dram.writeBack.pop_front();
+        if (program_dram.writeBack.size() == 0)
+        {
+            program_dram.current_state = 0;
+        }
+        return {true, file_num, reg1};
     }
     else
     {
@@ -100,19 +108,12 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
                 justReceived[inst.fileNumber].push_back(inst);
                 justReceivedSize++;
             }
-            else if (mrmBuffer[inst.fileNumber].size() > 0)
+            else if (mrmBuffer[inst.fileNumber].size() > 0 && mrmBuffer[inst.fileNumber].back().type == 0)
             {
-                //find in buffer the previous lw/sw instruction and remove it
-                //we will store for buffer address for last memory instruction pushed
-                // for replacing the just previous instruction:
-                // for sw - just replace the previous instruction from the last instruction's address
-                // for lw - clear the address of the last instruction and push the current address as usual
-                //cout << "optimized !" << endl;
-                //cout << mrmBuffer[inst.fileNumber].size() << endl;
-                //cout << inst.fileNumber << endl;
-                //cout << mrmBuffer[inst.fileNumber].size() << endl;
+                //the last ins will either be the correct prev lw, nothing, or an sw instruction from which forwading has been done
+                program_dram.instructions_per_core[inst.fileNumber]++;
+                bufferSize[mrmBuffer[inst.fileNumber].back().memory_address / 1024]--;
                 mrmBuffer[inst.fileNumber].pop_back();
-                bufferSize[inst.memory_address / 1024]--;
                 //cout << mrmBuffer[inst.fileNumber].size() << endl;
                 justReceived[inst.fileNumber].push_back(inst);
                 justReceivedSize++;
@@ -125,6 +126,7 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
         }
         else
         {
+            program_dram.instructions_per_core[inst.fileNumber]++;
             // cout << "Popped first" << endl;
             justReceived[inst.fileNumber].pop_back();
             justReceived[inst.fileNumber].push_back(inst);
@@ -140,10 +142,17 @@ int Memory_request_manager::totalBufferSize()
     return count;
 }
 
+bool Memory_request_manager::forwardable(int file_num)
+{
+
+    return (justReceived[file_num].front().type == 0 && mrmBuffer[file_num].size() > 0 && mrmBuffer[file_num].back().type == 1 && justReceived[file_num].front().memory_address == mrmBuffer[file_num].back().memory_address);
+}
+
 void Memory_request_manager::updateMRM()
 {
     if (program_dram.start_cycle == program_dram.clock_cycles)
     {
+        cout << program_dram.start_cycle << endl;
         mrmPrint.push_back("Updating pointers of MRM buffer after sending latest DRAM ins"); // updating pointers for last dram instruction sent
         return;
     }
@@ -151,18 +160,49 @@ void Memory_request_manager::updateMRM()
     string forPrint = "";
     if (justReceivedSize > 0)
     {
+        string forwarding = "";
         for (int i = 0; i < justReceived.size(); i++)
         {
             if (justReceived[i].size() > 0)
             {
                 //cout << "file no. " << i << endl;
-                DRAM_ins temp = justReceived[i].front();
-                justReceived[i].pop_front();
-                justReceivedSize--;
-                mrmBuffer[i].push_back(temp);
-                bufferSize[temp.memory_address / 1024]++;
+                if (forwardable(i))
+                {
+                    //check if the front instruction of just recieved has a matching sw as the last elem of mrmBuffer[i]
+                    string t1, ans;
+                    DRAM_ins temp = justReceived[i].front();
+                    if (temp.type == 0)
+                    {
+                        t1 = "lw";
+                    }
+                    else
+                    {
+                        t1 = "sw";
+                    }
+                    ans = (t1 + " " + temp.reg + " " + to_string(temp.memory_address));
+                    if (forwarding.size() != 0)
+                    {
+                        forwarding = forwarding + ", ";
+                    }
+                    forwarding += "(" + ans + " core :" + to_string(i + 1) + ")";
+
+                    justReceived[i].pop_front();
+                    justReceivedSize--;
+                    temp.value = mrmBuffer[i].back().value;
+                    program_dram.writeBack.push_back(temp);
+                    program_dram.current_state = 1;
+                }
+                else
+                {
+                    DRAM_ins temp = justReceived[i].front();
+                    justReceived[i].pop_front();
+                    justReceivedSize--;
+                    mrmBuffer[i].push_back(temp);
+                    bufferSize[temp.memory_address / 1024]++;
+                }
             }
         }
+        forwarded_data[get_clock_cycles()] = forwarding;
         forPrint += "Pushing into MRM Buffer"; //
         //mrmPrint.push_back("Changing pointers for just arrived instructions");
     }
@@ -178,8 +218,13 @@ void Memory_request_manager::updateMRM()
         if (program_dram.DRAM_PRIORITY_ROW == -1 || bufferSize[program_dram.DRAM_PRIORITY_ROW] == 0)
         {
             //getNewRow();
+            bool found = false;
             for (int i = 0; i < mrmBuffer.size(); i++)
             {
+                if (found)
+                {
+                    break;
+                }
                 for (int j = 0; j < mrmBuffer[i].size(); j++)
                 {
                     program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
@@ -188,6 +233,7 @@ void Memory_request_manager::updateMRM()
                     {
                         forPrint += " and ";
                     }
+                    found = true;
                     forPrint += "Finding a new row for DRAM"; //reading operation of half - cycle
                     // program_dram.setRunning(program_dram.clock_cycles + 1);
                     break;
@@ -196,6 +242,7 @@ void Memory_request_manager::updateMRM()
         }
         else
         {
+            cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
             //cout << "FFF" << endl;
             //send row buffer instruction to DRAM
             if (forPrint.size() > 0)

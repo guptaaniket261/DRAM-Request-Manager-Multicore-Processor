@@ -1,5 +1,1 @@
-mul $t0, $t0, $zero
-lw $t1, 1040($zero)
-mul $t1, $t1,$t1
 addi $t3, $t3, 20
-sw $t3, 1040($zero)

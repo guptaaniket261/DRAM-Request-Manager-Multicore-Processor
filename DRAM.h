@@ -22,6 +22,8 @@ struct DRAM_ins
 class DRAM
 {
 public:
+    int dramCycle = 0;
+    int buffer_updates = 0;
     DRAM(int, int); //row access, col access
     bool checkIfRunning();
     void setRunning(int);
@@ -32,7 +34,7 @@ public:
     void updateMemory();
     void sendToWrite_mrm();
     void simulateDRAM();
-    DRAM_ins writeBack;
+    deque<DRAM_ins> writeBack;
     int DRAM_PRIORITY_ROW;
     DRAM_ins DRAMcurrentIns;
     int DRAM_ROW_BUFFER;
@@ -45,5 +47,6 @@ public:
     int cycle_type;
     int writeback_row_number;
     int current_state = 0;
+    vector<int> instructions_per_core;
     vector<string> dramPrint;
 };

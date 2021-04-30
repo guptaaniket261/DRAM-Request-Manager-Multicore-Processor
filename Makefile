@@ -10,4 +10,5 @@ clean:
 	rm -f *.o
 	rm -f *.d
 	rm -f final
+	rm -f final.exe
 
