@@ -1,0 +1,4 @@
+addi $t1,$t1, 40
+sw $t1, 3000($zero)
+lw $t3, 3000($zero)
+mul $t3,$t3,$t3

@@ -1,0 +1,6 @@
+addi $t3, $t3, 20
+mul $t3, $t3, $t3
+j exit
+lw $t0, 2000($t3)
+sub $t4, $t4, $t3
+exit:

@@ -1,0 +1,6 @@
+addi $t3, $t3, 50
+addi $t2, $t2, 20
+bne $t2, $t3, rem
+lw $t0, 2000($zero)
+rem:
+    slt $t8, $t2, $t3

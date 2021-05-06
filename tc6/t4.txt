@@ -1,0 +1,10 @@
+addi $t2, $t2, 20
+mul $t4, $t2,$t2
+addi $t7,$t7,4
+loop:
+    lw $t2,4000($zero)
+    addi $t2,$t2,10
+    beq $t6, $t7,exit
+    addi $t6,$t6,1
+    j loop
+exit:

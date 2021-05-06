@@ -397,8 +397,14 @@ void process()
         {
             if (invalid_files[i] || PC[i] >= instructs[i].size())
             {
-
-                memReqManager.coreOpPrint[i].push_back("IDLE");
+                if (invalid_files[i])
+                {
+                    memReqManager.coreOpPrint[i].push_back("Invalid file");
+                }
+                else
+                {
+                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                }
                 if (get<1>(result) != i)
                 {
                     memReqManager.registerPrint[i].push_back("IDLE");
@@ -573,9 +579,9 @@ void process()
                     if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                     {
                         //&& !(memReqManager.program_dram.DRAMcurrentIns.type == 0 && memReqManager.program_dram.DRAMcurrentIns.reg == current_instr.field_1)
+
                         if (prevMemoryOperation[i].type == 0 && prevMemoryOperation[i].reg == current_instr.field_1)
                         {
-
                             if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                             {
                                 prevMemoryOperation[i] = temp;
@@ -741,6 +747,16 @@ void process()
             }
         }
     }
+    //writeback should happen iff the cycles are actually completed
+    int row_rem = memReqManager.program_dram.DRAM_ROW_BUFFER;
+    if (row_rem != -1 && !memReqManager.program_dram.checkIfRunning()) //the ins should have been completed
+    {
+
+        for (int i = 0; i < 1024; i++)
+        {
+            memReqManager.program_dram.memory[1024 * row_rem + i] = memReqManager.program_dram.ROW_BUFFER[i];
+        }
+    }
 }
 
 int main(int argc, char *argv[])
@@ -782,10 +798,10 @@ int main(int argc, char *argv[])
     instructs.resize(number_of_files);
     memReqManager.register_busy.resize(number_of_files);
     prevMemoryOperation.resize(number_of_files);
-
+    string folder = "tc2";
     for (int i = 0; i < number_of_files; i++)
     {
-        string filename = "t" + to_string(i + 1) + ".txt";
+        string filename = "./" + folder + "/t" + to_string(i + 1) + ".txt";
         ifstream file(filename);
         string current_line;
         initialise_Registers(i);

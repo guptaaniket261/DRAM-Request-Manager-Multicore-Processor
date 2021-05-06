@@ -1,0 +1,8 @@
+addi $t3, $t3, 8
+loop:
+    addi $t0, $t0, 1
+    beq $t0, $t3, exit
+    j loop
+exit: 
+sw $t3, 2000($zero)
+lw $t5, 2000($zero)

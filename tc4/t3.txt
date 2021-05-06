@@ -1,0 +1,4 @@
+add $t2,$t2, 100
+lw $t2, 3000($zero)
+lw $t2, 3004($zero)
+slt $s0,$t0,$t2

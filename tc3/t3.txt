@@ -1,0 +1,7 @@
+addi $t0, $t0, 100
+addi $t2, $t2, 200
+bne $t0, $t2, next
+lw $t8, 3000($zero)
+next:
+    lw $t3,3004($zero)
+    lw $t3, 3008($zero)

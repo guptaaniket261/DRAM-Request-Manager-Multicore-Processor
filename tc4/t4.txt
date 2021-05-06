@@ -1,0 +1,5 @@
+addi $t5, $t5, 100
+sub $t0,$t0,$t5
+sw $t0, 4000($zero)
+lw $t6,4004($zero)
+lw $t6, 4008($zero)

@@ -1,0 +1,6 @@
+addi $t8,$t8, 200
+j next
+lw $t2,4020($zero)
+next:
+    sw $t8, 4020($zero)
+    lw $t5, 4020($zero)

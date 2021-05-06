@@ -1,0 +1,6 @@
+addi $t1, $t1, 200
+addi $t4, $t4, 200
+slt $s0, $t1, $t4
+lw $t2, 1000($zero)
+lw $t2, 400($zero)
+lw $t2, 600($zero)

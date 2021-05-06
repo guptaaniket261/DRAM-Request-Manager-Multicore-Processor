@@ -1,0 +1,8 @@
+addi $t7,$t7, 100
+addi $t6,$t6, 6
+sw $t7, 2000($zero)
+loop:
+    beq $t0, $t6, exit
+    addi $t2,$t2,4
+    lw $t3, 1048($t2)
+exit:

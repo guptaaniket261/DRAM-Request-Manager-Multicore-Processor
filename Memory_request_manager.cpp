@@ -94,21 +94,24 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
         //cout << "flag 1" << endl;
         //if just recieved of the core is empty, then prev same instr must be in the buffer, or being executed
         //else, it must be the last element of just recieved of that core
+        //cout << inst.memory_address << endl;
         if (justReceived[inst.fileNumber].size() == 0)
         {
+            //cout << inst.memory_address << endl;
             //remove the prev same instr from the buffer, if it is not the current instruction
-            if (inst.type == 0 && program_dram.checkIfRunning() && program_dram.DRAMcurrentIns.type == 0 && inst.reg == program_dram.DRAMcurrentIns.reg)
-            {
-                //cout << "okay1" << endl;
-                justReceived[inst.fileNumber].push_back(inst);
-                justReceivedSize++;
-            }
-            else if (inst.type == 1 && program_dram.checkIfRunning() && program_dram.DRAMcurrentIns.type == 1 && inst.memory_address == program_dram.DRAMcurrentIns.memory_address)
-            {
-                justReceived[inst.fileNumber].push_back(inst);
-                justReceivedSize++;
-            }
-            else if (mrmBuffer[inst.fileNumber].size() > 0 && mrmBuffer[inst.fileNumber].back().type == 0)
+            // if (inst.type == 0 && program_dram.checkIfRunning() && program_dram.DRAMcurrentIns.type == 0 && inst.reg == program_dram.DRAMcurrentIns.reg)
+            // {
+            //     //cout << "okay1" << endl;
+            //     //actually, the running instructions is not the just previous instruction in thus case !
+            //     justReceived[inst.fileNumber].push_back(inst);
+            //     justReceivedSize++;
+            // }
+            // else if (inst.type == 1 && program_dram.checkIfRunning() && program_dram.DRAMcurrentIns.type == 1 && inst.memory_address == program_dram.DRAMcurrentIns.memory_address)
+            // {
+            //     justReceived[inst.fileNumber].push_back(inst);
+            //     justReceivedSize++;
+            // }
+            if (mrmBuffer[inst.fileNumber].size() > 0 && mrmBuffer[inst.fileNumber].back().type == 0)
             {
                 //the last ins will either be the correct prev lw, nothing, or an sw instruction from which forwading has been done
                 program_dram.instructions_per_core[inst.fileNumber]++;
@@ -152,7 +155,7 @@ void Memory_request_manager::updateMRM()
 {
     if (program_dram.start_cycle == program_dram.clock_cycles)
     {
-        cout << program_dram.start_cycle << endl;
+        //cout << program_dram.start_cycle << endl;
         mrmPrint.push_back("Updating pointers of MRM buffer after sending latest DRAM ins"); // updating pointers for last dram instruction sent
         return;
     }
@@ -242,7 +245,7 @@ void Memory_request_manager::updateMRM()
         }
         else
         {
-            cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
+            //cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
             //cout << "FFF" << endl;
             //send row buffer instruction to DRAM
             if (forPrint.size() > 0)

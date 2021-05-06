@@ -1,0 +1,6 @@
+main:
+lw $t5, 2000($zero)
+lw $t6, 2004($zero)
+lw $t7, 2008($zero)
+add $t7, $t6,$t5
+exit:

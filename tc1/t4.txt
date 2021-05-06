@@ -1,0 +1,7 @@
+addi $t2, $t2, 100
+mul $t2, $t2, 20
+addi $t3,$t3, 40
+beq $t2, $t3, next
+sub $t2, $t2, 1000
+next:
+    addi $t5, $t5, 100

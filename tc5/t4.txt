@@ -1,0 +1,8 @@
+addi $t2,$t2,200
+addi $t5,$t5, 300
+lw $t5,4000($zero)
+lw $t6,4000($zero)
+mul $s0, $t5,$t6
+j exit
+slt $t3,$t5,$t6
+exit:

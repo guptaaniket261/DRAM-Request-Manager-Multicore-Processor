@@ -1,0 +1,5 @@
+addi $t7, $t7, 200
+addi $t1, $t1, 300
+beq $t1,$t7, next
+slt $s0,$t1,$t7
+next:
