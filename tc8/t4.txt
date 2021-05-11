@@ -1,0 +1,5 @@
+add $t1, $t1, 98
+mul $t2, $t1, $t1
+j exit
+lw $t3, 4000($zero)
+exit:

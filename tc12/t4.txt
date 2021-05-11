@@ -1,0 +1,6 @@
+add $t1, $t1, 100
+add $t2, $t2, 200
+loop:
+add $t1, $t1, 25
+bne $t1, $t2, loop
+exit:

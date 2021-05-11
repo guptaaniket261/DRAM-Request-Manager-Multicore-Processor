@@ -1,0 +1,6 @@
+add $t1, $t1, 100
+sw $t1, 6000($zero)
+sw $t2, 6000($zero)
+j exit
+add $t3, $t3, 100
+exit:

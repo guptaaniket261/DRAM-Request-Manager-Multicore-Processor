@@ -17,6 +17,7 @@ struct DRAM_ins
     int memory_address; //stores load/store address
     int value = 0;      //stores the value of register in case of sw instruction, as we are already passing it
     int fileNumber;
+    int memInsNumber;
     string reg; //stores the register of instruction
 };
 class DRAM

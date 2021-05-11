@@ -1,0 +1,7 @@
+add $t0, $t0, 100
+add $t1, $t1, 76
+sub $t2, $t0, $t1
+sw $t2, 2000($zero)
+j exit
+lw $t5, 2000($zero)
+exit:

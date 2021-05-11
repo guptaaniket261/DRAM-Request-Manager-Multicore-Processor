@@ -1,0 +1,6 @@
+add $t0, $t0, 100
+add $t1, $t1, 50
+mul $t2, $t0, $t1
+beq $t1, $t2, exit
+sw $t2, 10000($t0)
+exit:

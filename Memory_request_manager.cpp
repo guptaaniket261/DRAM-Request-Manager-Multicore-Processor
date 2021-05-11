@@ -111,7 +111,9 @@ void Memory_request_manager::sendToMRM(DRAM_ins inst, int flag)
             //     justReceived[inst.fileNumber].push_back(inst);
             //     justReceivedSize++;
             // }
-            if (mrmBuffer[inst.fileNumber].size() > 0 && mrmBuffer[inst.fileNumber].back().type == 0)
+            if (mrmBuffer[inst.fileNumber].size() > 0 && mrmBuffer[inst.fileNumber].back().memInsNumber == inst.memInsNumber-1 &&
+                mrmBuffer[inst.fileNumber].back().type == inst.type && 
+                ((inst.type == 1 && inst.memory_address==mrmBuffer[inst.fileNumber].back().memory_address) || (inst.type == 0 && inst.reg == mrmBuffer[inst.fileNumber].back().reg)))
             {
                 //the last ins will either be the correct prev lw, nothing, or an sw instruction from which forwading has been done
                 program_dram.instructions_per_core[inst.fileNumber]++;
@@ -148,7 +150,7 @@ int Memory_request_manager::totalBufferSize()
 bool Memory_request_manager::forwardable(int file_num)
 {
 
-    return (justReceived[file_num].front().type == 0 && mrmBuffer[file_num].size() > 0 && mrmBuffer[file_num].back().type == 1 && justReceived[file_num].front().memory_address == mrmBuffer[file_num].back().memory_address);
+    return (justReceived[file_num].front().type == 0 && mrmBuffer[file_num].size() > 0 && mrmBuffer[file_num].back().type == 1 && justReceived[file_num].front().memory_address == mrmBuffer[file_num].back().memory_address && justReceived[file_num].front().memInsNumber == mrmBuffer[file_num].back().memInsNumber+1);
 }
 
 void Memory_request_manager::updateMRM()

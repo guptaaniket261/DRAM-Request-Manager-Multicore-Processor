@@ -381,6 +381,7 @@ void callFunction(int name, int file_num)
 void process()
 {
     vector<int> waiting(number_of_files, 0);
+    vector<int> memInsCount(number_of_files, 0);
     while (true)
     {
         memReqManager.increment_cycles();
@@ -585,6 +586,8 @@ void process()
                             if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                             {
                                 prevMemoryOperation[i] = temp;
+                                memInsCount[i]++;
+                                temp.memInsNumber = memInsCount[i];
                                 memReqManager.sendToMRM(temp, 1);
                                 memReqManager.registerPrint[i].push_back("IDLE");
                                 memReqManager.register_busy[i][temp.reg] = address / 1024;
@@ -631,6 +634,8 @@ void process()
                         memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
                         prevMemoryOperation[i] = temp;
                         memReqManager.register_busy[i][temp.reg] = address / 1024;
+                        memInsCount[i]++;
+                        temp.memInsNumber = memInsCount[i];
                         memReqManager.sendToMRM(temp, 0);
                         //instructions_per_core[i]++;
                         waiting[i] = 0;
@@ -697,6 +702,8 @@ void process()
                             memReqManager.registerPrint[i].push_back("IDLE");
                             memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
                             prevMemoryOperation[i] = temp;
+                            memInsCount[i]++;
+                            temp.memInsNumber = memInsCount[i];
                             memReqManager.sendToMRM(temp, 1);
                             //instructions_per_core[i]++;
                             waiting[i] = 0;
@@ -721,6 +728,8 @@ void process()
                     if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                     {
                         prevMemoryOperation[i] = temp;
+                        memInsCount[i]++;
+                        temp.memInsNumber = memInsCount[i];
                         memReqManager.sendToMRM(temp, 0);
                         memReqManager.registerPrint[i].push_back("IDLE");
                         memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
@@ -798,7 +807,7 @@ int main(int argc, char *argv[])
     instructs.resize(number_of_files);
     memReqManager.register_busy.resize(number_of_files);
     prevMemoryOperation.resize(number_of_files);
-    string folder = "tc2";
+    string folder = "tc12";
     for (int i = 0; i < number_of_files; i++)
     {
         string filename = "./" + folder + "/t" + to_string(i + 1) + ".txt";

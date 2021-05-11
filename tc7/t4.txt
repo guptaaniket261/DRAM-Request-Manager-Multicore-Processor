@@ -1,0 +1,5 @@
+add $t2, $t2, 100
+mul $t3, $t2, $t2
+j exit
+lw $t1, 4000($t2)
+exit:

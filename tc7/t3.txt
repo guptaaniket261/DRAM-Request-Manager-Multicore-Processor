@@ -1,0 +1,5 @@
+add $t1, $t1, 100
+add $t2, $t3, 50
+mul $t4, $t1, $t2
+j exit
+exit:

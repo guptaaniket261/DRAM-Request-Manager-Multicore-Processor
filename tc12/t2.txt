@@ -1,0 +1,6 @@
+add $t1, $t1, 100
+add $t2, $t2, 200
+sw $t1, 2000($zero)
+sw $t2, 2024($zero)
+lw $t2, 2024($zero)
+add $t2, $t2, 100

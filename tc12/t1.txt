@@ -1,0 +1,5 @@
+add $t1, $t1, 100
+sw $t1, 1000($zero)
+lw $t2, 1000($zero)
+mul $t1, $t1, 9
+add $t2, $t1, 8
