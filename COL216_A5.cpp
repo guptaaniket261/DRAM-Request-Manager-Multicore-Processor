@@ -30,7 +30,7 @@ vector<bool> invalid_files;
 Memory_request_manager memReqManager = Memory_request_manager(1, 2);
 vector<DRAM_ins> prevMemoryOperation; //remember to initialise this vector !
 int mainCycle = 0;
-
+int address_offset = 0; //will be set to (1<<20)/number of files. for i'th core, address =actual_add + (i-1)*offset
 string ifZero(string temp)
 {
     if (temp.size() >= 3 && temp[0] == '$' && temp[1] == 'r' && temp[2] == '0')
@@ -215,18 +215,18 @@ void add(int file_num)
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
-        memReqManager.registerPrint[file_num].push_back("IDLE");
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
         return;
     }
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] + memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -235,18 +235,18 @@ void sub(int file_num)
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
-        memReqManager.registerPrint[file_num].push_back("IDLE");
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
         return;
     }
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] - memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -255,18 +255,18 @@ void mul(int file_num)
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
-        memReqManager.registerPrint[file_num].push_back("IDLE");
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
         return;
     }
     else if (is_integer(current.field_3))
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * stoi(current.field_3);
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         memReqManager.register_values[file_num][current.field_1] = memReqManager.register_values[file_num][current.field_2] * memReqManager.register_values[file_num][current.field_3];
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -281,7 +281,7 @@ void beq(int file_num)
     {
         PC[file_num]++;
     }
-    memReqManager.registerPrint[file_num].push_back("IDLE");
+    memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
 }
 
 void bne(int file_num)
@@ -295,7 +295,7 @@ void bne(int file_num)
     {
         PC[file_num]++;
     }
-    memReqManager.registerPrint[file_num].push_back("IDLE");
+    memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
 }
 
 void slt(int file_num)
@@ -303,7 +303,7 @@ void slt(int file_num)
     struct Instruction current = instructs[file_num][PC[file_num]];
     if (current.field_1 == "$r0")
     {
-        memReqManager.registerPrint[file_num].push_back("IDLE");
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
         return;
     }
     else if (is_integer(current.field_3))
@@ -312,7 +312,7 @@ void slt(int file_num)
             memReqManager.register_values[file_num][current.field_1] = 1;
         else
             memReqManager.register_values[file_num][current.field_1] = 0;
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
@@ -320,7 +320,7 @@ void slt(int file_num)
             memReqManager.register_values[file_num][current.field_1] = 1;
         else
             memReqManager.register_values[file_num][current.field_1] = 0;
-        memReqManager.registerPrint[file_num].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
+        memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
 
@@ -330,12 +330,12 @@ void addi(int file_number)
     if (current.field_1 == "$r0")
     {
         return;
-        memReqManager.registerPrint[file_number].push_back("IDLE");
+        memReqManager.registerPrint[file_number][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
     }
     else
     {
         memReqManager.register_values[file_number][current.field_1] = memReqManager.register_values[file_number][current.field_2] + stoi(current.field_3);
-        memReqManager.registerPrint[file_number].push_back(current.field_1 + " = " + to_string(memReqManager.register_values[file_number][current.field_1]));
+        memReqManager.registerPrint[file_number][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_number][current.field_1]));
     }
 }
 
@@ -343,7 +343,7 @@ void j(int file_number)
 {
     struct Instruction current = instructs[file_number][PC[file_number]];
     PC[file_number] = labelNo[file_number][current.field_1] - 1;
-    memReqManager.registerPrint[file_number].push_back("IDLE");
+    memReqManager.registerPrint[file_number][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
 }
 //handle labelNo for each file separately
 
@@ -400,15 +400,15 @@ void process()
             {
                 if (invalid_files[i])
                 {
-                    memReqManager.coreOpPrint[i].push_back("Invalid file");
+                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Invalid file");
                 }
                 else
                 {
-                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                 }
                 if (get<1>(result) != i)
                 {
-                    memReqManager.registerPrint[i].push_back("IDLE");
+                    memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                 }
                 continue;
             }
@@ -429,12 +429,12 @@ void process()
                         {
                             if (waiting[i] == 0)
                             {
-                                memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                 waiting[i] = 1;
                             }
                             else
                             {
-                                memReqManager.coreOpPrint[i].push_back("IDLE");
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             }
                             continue;
                         }
@@ -446,46 +446,46 @@ void process()
 
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 continue;
                             }
                             if (Register_list.find(current_instr.field_2) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_2] != -1)
                             {
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 continue;
                             }
                             if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                             {
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 continue;
                             }
                             waiting[i] = 0;
-                            memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                             callFunction(current_instr_name, i);
                             memReqManager.program_dram.instructions_per_core[i]++;
                             waiting[i] = 0;
@@ -500,41 +500,41 @@ void process()
                             memReqManager.program_dram.instructions_per_core[i]++;
                             callFunction(current_instr_name, i);
                             waiting[i] = 0;
-                            memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                         }
                         else
                         {
                             if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                             {
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
                                 continue;
                             }
                             if (Register_list.find(current_instr.field_2) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_2] != -1)
                             {
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
                                 continue;
                             }
-                            memReqManager.registerPrint[i].push_back("IDLE");
+                            memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             waiting[i] = 0;
-                            memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                             memReqManager.program_dram.instructions_per_core[i]++;
                             callFunction(current_instr_name, i);
                         }
@@ -544,7 +544,7 @@ void process()
                 {
                     //PC[i]++;
                     DRAM_ins temp;
-                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
+                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2) + i * address_offset;
                     temp.ins_number = PC[i];
                     temp.type = 0;
                     temp.memory_address = address;
@@ -554,26 +554,26 @@ void process()
                     { //offset register is being written on
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
                     if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
@@ -589,9 +589,9 @@ void process()
                                 memInsCount[i]++;
                                 temp.memInsNumber = memInsCount[i];
                                 memReqManager.sendToMRM(temp, 1);
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 memReqManager.register_busy[i][temp.reg] = address / 1024;
-                                memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                                 //instructions_per_core[i]++;
                                 waiting[i] = 0;
                                 PC[i]++;
@@ -599,30 +599,30 @@ void process()
                             }
                             else
                             {
-                                memReqManager.registerPrint[i].push_back("IDLE");
+                                memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 if (waiting[i] == 0)
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                     waiting[i] = 1;
                                 }
                                 else
                                 {
-                                    memReqManager.coreOpPrint[i].push_back("IDLE");
+                                    memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                                 }
                                 continue;
                             }
                         }
                         else
                         {
-                            memReqManager.registerPrint[i].push_back("IDLE");
+                            memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             if (waiting[i] == 0)
                             {
-                                memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                 waiting[i] = 1;
                             }
                             else
                             {
-                                memReqManager.coreOpPrint[i].push_back("IDLE");
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             }
                             continue;
                         }
@@ -630,8 +630,8 @@ void process()
 
                     if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
-                        memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
+                        memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                         prevMemoryOperation[i] = temp;
                         memReqManager.register_busy[i][temp.reg] = address / 1024;
                         memInsCount[i]++;
@@ -644,15 +644,15 @@ void process()
                     }
                     else
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
@@ -660,7 +660,7 @@ void process()
                 else
                 {
                     DRAM_ins temp;
-                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2);
+                    int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2) + i * address_offset;
                     temp.ins_number = PC[i];
                     temp.type = 1;
                     temp.memory_address = address;
@@ -669,29 +669,29 @@ void process()
                     temp.fileNumber = i;
                     if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
                     if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
@@ -699,8 +699,8 @@ void process()
                     {
                         if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
                         {
-                            memReqManager.registerPrint[i].push_back("IDLE");
-                            memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                            memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                             prevMemoryOperation[i] = temp;
                             memInsCount[i]++;
                             temp.memInsNumber = memInsCount[i];
@@ -712,15 +712,15 @@ void process()
                         }
                         else
                         {
-                            memReqManager.registerPrint[i].push_back("IDLE");
+                            memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             if (waiting[i] == 0)
                             {
-                                memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                                 waiting[i] = 1;
                             }
                             else
                             {
-                                memReqManager.coreOpPrint[i].push_back("IDLE");
+                                memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                             }
                             continue;
                         }
@@ -731,8 +731,8 @@ void process()
                         memInsCount[i]++;
                         temp.memInsNumber = memInsCount[i];
                         memReqManager.sendToMRM(temp, 0);
-                        memReqManager.registerPrint[i].push_back("IDLE");
-                        memReqManager.coreOpPrint[i].push_back(findInstruction(current_instr));
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
+                        memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = (findInstruction(current_instr));
                         //instructions_per_core[i]++;
                         waiting[i] = 0;
                         PC[i]++;
@@ -740,15 +740,15 @@ void process()
                     }
                     else
                     {
-                        memReqManager.registerPrint[i].push_back("IDLE");
+                        memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         if (waiting[i] == 0)
                         {
-                            memReqManager.coreOpPrint[i].push_back("Read : " + findInstruction(current_instr));
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
                             waiting[i] = 1;
                         }
                         else
                         {
-                            memReqManager.coreOpPrint[i].push_back("IDLE");
+                            memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
                         }
                         continue;
                     }
@@ -807,7 +807,7 @@ int main(int argc, char *argv[])
     instructs.resize(number_of_files);
     memReqManager.register_busy.resize(number_of_files);
     prevMemoryOperation.resize(number_of_files);
-    string folder = "tc12";
+    string folder = "tc7";
     for (int i = 0; i < number_of_files; i++)
     {
         string filename = "./" + folder + "/t" + to_string(i + 1) + ".txt";
@@ -843,6 +843,7 @@ int main(int argc, char *argv[])
     {
         PC.push_back(0);
     }
+    address_offset = (1 << 20) / number_of_files;
     process();
     PrintData();
 

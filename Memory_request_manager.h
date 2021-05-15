@@ -14,9 +14,9 @@ using namespace std;
 class Memory_request_manager
 {
 public:
-    vector<vector<string>> coreOpPrint;
-    vector<vector<string>> registerPrint;
-    vector<string> mrmPrint;
+    vector<map<int, string>> coreOpPrint;
+    vector<map<int, string>> registerPrint;
+    map<int, string> mrmPrint;
     int totalBufferSize();
     Memory_request_manager(int, int);
     vector<deque<DRAM_ins>> mrmBuffer;
