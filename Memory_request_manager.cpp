@@ -16,10 +16,17 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
     if (program_dram.current_state == 1)
     {
-        cout << "cycle" << program_dram.clock_cycles << endl;
+        //cout << "cycle" << program_dram.clock_cycles << endl;
         registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] = (program_dram.writeBack.front().reg + " = " + to_string(program_dram.writeBack.front().value));
-        cout << registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] << " " << program_dram.writeBack.front().fileNumber << endl;
+
+        //cout << registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] << " " << program_dram.writeBack.front().fileNumber << endl;
         register_values[program_dram.writeBack.front().fileNumber][program_dram.writeBack.front().reg] = program_dram.writeBack.front().value;
+        if (program_dram.writeBack.front().reg == "$r0")
+        {
+            registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] = (program_dram.writeBack.front().reg + " = " + to_string(0));
+            //loading into r0 should not change the value
+            register_values[program_dram.writeBack.front().fileNumber][program_dram.writeBack.front().reg] = 0;
+        }
         program_dram.dramCycle = max(program_dram.dramCycle, program_dram.clock_cycles);
         //this means a writeback is being done in current cycle
         //mrmBuffer, justrecieved

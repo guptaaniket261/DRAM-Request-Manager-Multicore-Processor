@@ -75,7 +75,4 @@ Not in the case when $t1 is offset register since we will have to do base + offs
 
 ERROR CASES
 
-//address divisible by 4 ERROR
-//writing in r0 error
-//lw/sw in assigned memory
-//increase size of buffer to 128
+//how to avoid MRAM, DRAM, FORWARDING printing to avoid taking erroneous file's instructions into account.

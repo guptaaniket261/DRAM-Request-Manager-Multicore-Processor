@@ -27,6 +27,7 @@ int simulation_time;
 int actual_cycles = 0;
 vector<int> PC;
 vector<bool> invalid_files;
+vector<int> invalid_file_cycle;
 Memory_request_manager memReqManager = Memory_request_manager(1, 2);
 vector<DRAM_ins> prevMemoryOperation; //remember to initialise this vector !
 int mainCycle = 0;
@@ -123,12 +124,16 @@ void PrintData()
         fout << left << setw(15) << i + 1;
         for (int j = 0; j < number_of_files; j++)
         {
-            fout << left << setw(28) << memReqManager.coreOpPrint[j][i];
-            if (i == 10 && j == 0)
+            if (invalid_files[j] && i + 1 >= invalid_file_cycle[j])
             {
-                cout << memReqManager.registerPrint[j][i] << endl;
+                fout << left << setw(28) << "Invalid file";
+                fout << left << setw(25) << "Invalid file";
             }
-            fout << left << setw(25) << memReqManager.registerPrint[j][i];
+            else
+            {
+                fout << left << setw(28) << memReqManager.coreOpPrint[j][i];
+                fout << left << setw(25) << memReqManager.registerPrint[j][i];
+            }
         }
         fout << left << setw(100) << memReqManager.mrmPrint[i];
         fout << left << setw(50) << memReqManager.program_dram.dramPrint[i];
@@ -405,6 +410,11 @@ void process()
                 if (invalid_files[i])
                 {
                     memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Invalid file");
+                    memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Invalid file");
+                    if (invalid_file_cycle[i] == 0)
+                    {
+                        invalid_file_cycle[i] = memReqManager.program_dram.clock_cycles;
+                    }
                 }
                 else
                 {
@@ -548,12 +558,18 @@ void process()
                     //PC[i]++;
                     DRAM_ins temp;
                     int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2) + i * address_offset;
+                    if (address % 4 != 0 || !(address >= address_offset * i && address <= address_offset * (i + 1) - 1)) //address doesn't fall in allocated memory. allocated memory is)
+                    {
+                        //address doesn't fall in allocated memory. allocated memory is
+                        memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
+                        invalid_files[i] = true;
+                    }
                     temp.ins_number = PC[i];
                     temp.type = 0;
                     temp.memory_address = address;
                     temp.reg = current_instr.field_1;
                     temp.fileNumber = i;
-                    if (get<0>(result) && i == get<1>(result) && current_instr.field_3 == get<2>(result))
+                    if (get<0>(result) && i == get<1>(result) && current_instr.field_3 == get<2>(result) && current_instr.field_3 != "$r0")
                     { //offset register is being written on
                         if (waiting[i] == 0)
                         {
@@ -566,7 +582,7 @@ void process()
                         }
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
+                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1 && current_instr.field_3 != "$r0")
                     {
                         if (!(get<0>(result) && i == get<1>(result)))
                         {
@@ -583,13 +599,13 @@ void process()
                         }
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
+                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1 && current_instr.field_1 != "$r0")
                     {
                         //&& !(memReqManager.program_dram.DRAMcurrentIns.type == 0 && memReqManager.program_dram.DRAMcurrentIns.reg == current_instr.field_1)
 
                         if (prevMemoryOperation[i].type == 0 && prevMemoryOperation[i].reg == current_instr.field_1)
                         {
-                            if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
+                            if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 128 / number_of_files)
                             {
                                 prevMemoryOperation[i] = temp;
                                 memInsCount[i]++;
@@ -639,7 +655,7 @@ void process()
                         }
                     }
 
-                    if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
+                    if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 128 / number_of_files)
                     {
                         if (!(get<0>(result) && i == get<1>(result)))
                             memReqManager.registerPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
@@ -676,15 +692,19 @@ void process()
                 {
                     DRAM_ins temp;
                     int address = memReqManager.register_values[i][current_instr.field_3] + stoi(current_instr.field_2) + i * address_offset;
+                    if (address % 4 != 0 || !(address >= address_offset * i && address <= address_offset * (i + 1) - 1)) //address doesn't fall in allocated memory. allocated memory is)
+                    {
+                        memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
+                        invalid_files[i] = true;
+                    }
                     temp.ins_number = PC[i];
                     temp.type = 1;
                     temp.memory_address = address;
                     temp.reg = current_instr.field_1;
                     temp.value = memReqManager.register_values[i][current_instr.field_1];
                     temp.fileNumber = i;
-                    if (get<0>(result) && i == get<1>(result) && current_instr.field_3 == get<2>(result))
+                    if (get<0>(result) && i == get<1>(result) && current_instr.field_3 == get<2>(result) && current_instr.field_3 != "$r0")
                     { //offset register is being written on
-                        cout << "ff" << endl;
                         if (waiting[i] == 0)
                         {
                             memReqManager.coreOpPrint[i][memReqManager.program_dram.clock_cycles - 1] = ("Read : " + findInstruction(current_instr));
@@ -697,7 +717,7 @@ void process()
                         }
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1)
+                    if (Register_list.find(current_instr.field_1) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_1] != -1 && current_instr.field_1 != "$r0")
                     {
                         if (!(get<0>(result) && i == get<1>(result)))
                         {
@@ -714,7 +734,7 @@ void process()
                         }
                         continue;
                     }
-                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1)
+                    if (Register_list.find(current_instr.field_3) != Register_list.end() && memReqManager.register_busy[i][current_instr.field_3] != -1 && current_instr.field_3 != "$r0")
                     {
                         if (!(get<0>(result) && i == get<1>(result)))
                         {
@@ -733,7 +753,7 @@ void process()
                     }
                     if (prevMemoryOperation[i].type == 1 && prevMemoryOperation[i].memory_address == address)
                     {
-                        if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
+                        if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 128 / number_of_files)
                         {
                             if (!(get<0>(result) && i == get<1>(result)))
                             {
@@ -767,7 +787,7 @@ void process()
                             continue;
                         }
                     }
-                    if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 64 / number_of_files)
+                    if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 128 / number_of_files)
                     {
                         prevMemoryOperation[i] = temp;
                         memInsCount[i]++;
@@ -840,6 +860,7 @@ int main(int argc, char *argv[])
     memReqManager.set(r, c);
 
     invalid_files.resize(number_of_files);
+    invalid_file_cycle.resize(number_of_files, 0);
     memReqManager.program_dram.instructions_per_core.resize(number_of_files, 0);
     for (int i = 0; i < number_of_files; i++)
     {
