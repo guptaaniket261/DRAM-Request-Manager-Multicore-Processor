@@ -1,6 +1,6 @@
 addi $t2,$t2, 1000
 sub $t3, $t3, $t2
-sw $t2, 2080($zero)
+sw $t2, 2000($zero)
 lw $t7, 2000($zero)
 lw $t7, 2020($zero)
 lw $t7, 2080($zero)

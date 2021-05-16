@@ -16,7 +16,9 @@ tuple<bool, int, string> Memory_request_manager::checkForWriteback()
 {
     if (program_dram.current_state == 1)
     {
+        cout << "cycle" << program_dram.clock_cycles << endl;
         registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] = (program_dram.writeBack.front().reg + " = " + to_string(program_dram.writeBack.front().value));
+        cout << registerPrint[program_dram.writeBack.front().fileNumber][program_dram.clock_cycles - 1] << " " << program_dram.writeBack.front().fileNumber << endl;
         register_values[program_dram.writeBack.front().fileNumber][program_dram.writeBack.front().reg] = program_dram.writeBack.front().value;
         program_dram.dramCycle = max(program_dram.dramCycle, program_dram.clock_cycles);
         //this means a writeback is being done in current cycle
@@ -155,14 +157,50 @@ bool Memory_request_manager::forwardable(int file_num)
 
 void Memory_request_manager::updateMRM()
 {
-    if (program_dram.start_cycle == program_dram.clock_cycles)
-    {
-        //cout << program_dram.start_cycle << endl;
-        mrmPrint[program_dram.clock_cycles - 1] = "Updating pointers of MRM buffer after sending latest DRAM ins"; // updating pointers for last dram instruction sent
-        return;
-    }
+    // if (program_dram.start_cycle == program_dram.clock_cycles)
+    // {
+    //     //cout << program_dram.start_cycle << endl;
+    //     mrmPrint[program_dram.clock_cycles - 1] = "Updating pointers of MRM buffer after sending latest DRAM ins"; // updating pointers for last dram instruction sent
+    //     return;
+    // }
     bool res = program_dram.checkIfRunning();
     string forPrint = "";
+    if (!res && totalBufferSize() > 0)
+    {
+        //cout << "FFFFFFFF" << endl;
+        //in this case, alot a new instruction
+        //row_buffer =-1, or row buffer has an empty row one cycle for combinational logic. else send to DRAM
+        if (program_dram.DRAM_PRIORITY_ROW == -1 || bufferSize[program_dram.DRAM_PRIORITY_ROW] == 0)
+        {
+            //getNewRow();
+            bool found = false;
+            for (int i = 0; i < mrmBuffer.size(); i++)
+            {
+                if (found)
+                {
+                    break;
+                }
+                for (int j = 0; j < mrmBuffer[i].size(); j++)
+                {
+                    program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
+                    //mrmPrint.push_back("check new row buffer");
+                    found = true;
+                    forPrint += "Finding a new row for DRAM"; //reading operation of half - cycle
+                    // program_dram.setRunning(program_dram.clock_cycles + 1);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            //cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
+            //cout << "FFF" << endl;
+            //send row buffer instruction to DRAM
+            program_dram.setRunning(program_dram.clock_cycles + 1);
+            forPrint += allot_new_instruction(program_dram.DRAM_PRIORITY_ROW);
+        }
+    }
+
     if (justReceivedSize > 0)
     {
         string forwarding = "";
@@ -208,6 +246,10 @@ void Memory_request_manager::updateMRM()
             }
         }
         forwarded_data[get_clock_cycles()] = forwarding;
+        if (forPrint.size() > 0)
+        {
+            forPrint += " and ";
+        }
         forPrint += "Pushing into MRM Buffer"; //
         //mrmPrint.push_back("Changing pointers for just arrived instructions");
     }
@@ -215,53 +257,9 @@ void Memory_request_manager::updateMRM()
     {
         forPrint += "";
     }
-    if (!res && totalBufferSize() > 0)
+    if (forPrint == "")
     {
-        //cout << "FFFFFFFF" << endl;
-        //in this case, alot a new instruction
-        //row_buffer =-1, or row buffer has an empty row one cycle for combinational logic. else send to DRAM
-        if (program_dram.DRAM_PRIORITY_ROW == -1 || bufferSize[program_dram.DRAM_PRIORITY_ROW] == 0)
-        {
-            //getNewRow();
-            bool found = false;
-            for (int i = 0; i < mrmBuffer.size(); i++)
-            {
-                if (found)
-                {
-                    break;
-                }
-                for (int j = 0; j < mrmBuffer[i].size(); j++)
-                {
-                    program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
-                    //mrmPrint.push_back("check new row buffer");
-                    if (forPrint.size() > 0)
-                    {
-                        forPrint += " and ";
-                    }
-                    found = true;
-                    forPrint += "Finding a new row for DRAM"; //reading operation of half - cycle
-                    // program_dram.setRunning(program_dram.clock_cycles + 1);
-                    break;
-                }
-            }
-        }
-        else
-        {
-            //cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
-            //cout << "FFF" << endl;
-            //send row buffer instruction to DRAM
-            if (forPrint.size() > 0)
-            {
-                forPrint += " and ";
-            }
-            program_dram.setRunning(program_dram.clock_cycles + 1);
-            forPrint += allot_new_instruction(program_dram.DRAM_PRIORITY_ROW);
-        }
-    }
-    else
-    {
-        if (forPrint == "")
-            forPrint = "IDLE";
+        forPrint = "IDLE";
     }
     mrmPrint[program_dram.clock_cycles - 1] = forPrint;
     //we are taking one cycle to assign a new instruction (by popping from buffer) due to pointer updations in ll and hashmap

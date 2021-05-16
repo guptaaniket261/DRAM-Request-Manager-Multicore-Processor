@@ -4,5 +4,5 @@ add $t3, $t3, 300
 sw $t2, 1800($t1)
 lw $t1, 1800($t1)
 sw $t1, 1900($zero)
-sw $t3, 1900($zero)
+#sw $t3, 1900($zero)
 

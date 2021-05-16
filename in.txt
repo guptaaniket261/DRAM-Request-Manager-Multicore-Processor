@@ -61,3 +61,21 @@ For i ranging from 0 to n
 //separate folder for each t.c, 4 cores minimal
 // odd - Ishaan (forwarding,lw, dependent instructions)
 // even - Aniket
+
+To Check:
+tc5 - t3.txt
+
+lw/sw optimisation taking place when instruction is being pushed in just received.
+forwarding taking place when instruction is pushed in mrmBuffer from just received.
+
+
+sw $t1, 1900($zero)         $t1 = 200
+we can perform reading of sw with writeback as writing will take the first half and sw read in second half.
+Not in the case when $t1 is offset register since we will have to do base + offset_reg_value so it takes time
+
+ERROR CASES
+
+//address divisible by 4 ERROR
+//writing in r0 error
+//lw/sw in assigned memory
+//increase size of buffer to 128

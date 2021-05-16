@@ -1,5 +1,11 @@
-lw $t0,  1000($zero)
-lw $t2, 800($t5)
-addi $t2, $t2, 20
-sw $t2, 400($zero)
-lw $t7, 400($zero)
+lw $t1, 1000($zero)
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+addi $t3, $t3, 1
+lw $t5, 2000($t5)
