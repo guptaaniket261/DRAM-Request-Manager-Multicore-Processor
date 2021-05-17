@@ -318,17 +318,17 @@ void slt(int file_num)
     else if (is_integer(current.field_3))
     {
         if (stoi(current.field_3) > memReqManager.register_values[file_num][current.field_2])
-            memReqManager.register_values[file_num][current.field_1] = 1;
+            {memReqManager.register_values[file_num][current.field_1] = 1;}
         else
-            memReqManager.register_values[file_num][current.field_1] = 0;
+            {memReqManager.register_values[file_num][current.field_1] = 0;}
         memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
     else
     {
         if (memReqManager.register_values[file_num][current.field_3] > memReqManager.register_values[file_num][current.field_2])
-            memReqManager.register_values[file_num][current.field_1] = 1;
+            {memReqManager.register_values[file_num][current.field_1] = 1;}
         else
-            memReqManager.register_values[file_num][current.field_1] = 0;
+            {memReqManager.register_values[file_num][current.field_1] = 0;}
         memReqManager.registerPrint[file_num][memReqManager.program_dram.clock_cycles - 1] = (current.field_1 + " = " + to_string(memReqManager.register_values[file_num][current.field_1]));
     }
 }
@@ -654,6 +654,8 @@ void process()
                             continue;
                         }
                     }
+
+                    
 
                     if (memReqManager.mrmBuffer[i].size() + memReqManager.justReceived[i].size() < 128 / number_of_files)
                     {
