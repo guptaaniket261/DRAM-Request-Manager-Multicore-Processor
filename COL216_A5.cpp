@@ -338,8 +338,8 @@ void addi(int file_number)
     struct Instruction current = instructs[file_number][PC[file_number]];
     if (current.field_1 == "$r0")
     {
-        return;
         memReqManager.registerPrint[file_number][memReqManager.program_dram.clock_cycles - 1] = ("IDLE");
+        return;
     }
     else
     {

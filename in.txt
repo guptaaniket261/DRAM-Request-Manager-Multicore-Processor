@@ -74,5 +74,5 @@ we can perform reading of sw with writeback as writing will take the first half 
 Not in the case when $t1 is offset register since we will have to do base + offset_reg_value so it takes time
 
 ERROR CASES
-
+//add ERROR TEST CASES
 //how to avoid MRAM, DRAM, FORWARDING printing to avoid taking erroneous file's instructions into account.
