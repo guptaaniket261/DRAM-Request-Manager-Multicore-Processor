@@ -37,6 +37,7 @@ public:
     void simulateDRAM();
     deque<DRAM_ins> writeBack;
     int DRAM_PRIORITY_ROW;
+    int row_buffer_dirty;
     DRAM_ins DRAMcurrentIns;
     int DRAM_ROW_BUFFER;
     int ROW_ACCESS_DELAY, COL_ACCESS_DELAY;

@@ -190,6 +190,7 @@ void Memory_request_manager::updateMRM()
                 for (int j = 0; j < mrmBuffer[i].size(); j++)
                 {
                     program_dram.DRAM_PRIORITY_ROW = (mrmBuffer[i][j].memory_address) / 1024;
+                    program_dram.row_buffer_dirty = 0;
                     //mrmPrint.push_back("check new row buffer");
                     found = true;
                     forPrint += "Finding a new row for DRAM"; //reading operation of half - cycle
@@ -203,8 +204,9 @@ void Memory_request_manager::updateMRM()
             //cout << "bs" << bufferSize[program_dram.DRAM_PRIORITY_ROW] << endl;
             //cout << "FFF" << endl;
             //send row buffer instruction to DRAM
-            program_dram.setRunning(program_dram.clock_cycles + 1);
+            
             forPrint += allot_new_instruction(program_dram.DRAM_PRIORITY_ROW);
+            program_dram.setRunning(program_dram.clock_cycles + 1);
         }
     }
 
@@ -303,6 +305,9 @@ string Memory_request_manager::allot_new_instruction(int row_number)
                 }
                 else
                 {
+                    if(program_dram.row_buffer_dirty == 0){
+                        program_dram.row_buffer_dirty = 1;
+                    }
                     t1 = "sw";
                 }
                 ans = ("passing new instruction to DRAM: " + t1 + " " + temp.reg + " " + to_string(temp.memory_address));

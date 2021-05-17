@@ -15,6 +15,7 @@ DRAM::DRAM(int r, int c)
     clock_cycles = 0;
     DRAM_PRIORITY_ROW = -1;
     DRAM_ROW_BUFFER = -1;
+    row_buffer_dirty = 0;
 }
 bool DRAM::checkIfRunning()
 {
@@ -25,6 +26,7 @@ void DRAM::setDRAM(int r, int c)
     ROW_ACCESS_DELAY = r;
     COL_ACCESS_DELAY = c;
 }
+
 void DRAM::setRunning(int starting_cycle)
 {
     running = true;
@@ -40,9 +42,15 @@ void DRAM::setRunning(int starting_cycle)
     }
     else
     {
-        writeback_row_number = DRAM_ROW_BUFFER;
-        DRAM_ROW_BUFFER = DRAM_PRIORITY_ROW;
-        cycle_type = 2; //WRITEBACK, ACTIVATION, COL ACCESS
+        if(row_buffer_dirty == 0){
+            DRAM_ROW_BUFFER = DRAM_PRIORITY_ROW;
+            cycle_type = 1; //ROW ACTIVATION +COLUMN aCCESS
+        }
+        else{
+            writeback_row_number = DRAM_ROW_BUFFER;
+            DRAM_ROW_BUFFER = DRAM_PRIORITY_ROW;
+            cycle_type = 2; //WRITEBACK, ACTIVATION, COL ACCESS
+        }
     }
 }
 
